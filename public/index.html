@@ -4,13 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Codex — Books from the future</title>
+<meta name="description" content="Codex is a book marketplace where readers pay independent sellers directly, with tracking, scratch codes, and verified reviews.">
+<meta property="og:title" content="Codex — Books from the future">
+<meta property="og:description" content="Browse titles from independent sellers and pay them directly. No middleman on the money.">
+<meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#080b13; --surface:#101623; --surface2:#161f31; --line:#232e44;
-    --cyan:#4ff0e0; --violet:#8c7cff; --text:#e7ecf5; --muted:#8a93a8; --gold:#ffc163;
+    --bg:#050805; --surface:#0d140d; --surface2:#121b12; --line:#233324;
+    --green:#39ff8f; --green-soft:rgba(57,255,143,0.35); --green-glow:rgba(57,255,143,0.55);
+    --gold:#ffd54a; --gold-soft:rgba(255,213,74,0.35); --gold-glow:rgba(255,213,74,0.55);
+    --text:#eaf5ec; --muted:#8fa393; --danger:#ff7d9c;
     --radius:14px;
     box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   }
@@ -18,31 +24,25 @@
   html{scroll-padding-top:env(safe-area-inset-top,0px);}
   html,body{height:100%;}
   body{
-    background:var(--bg); color:var(--text); font-family:'Inter',sans-serif;
+    background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;
     background-image:
-      radial-gradient(circle at 15% 8%, rgba(140,124,255,0.14), transparent 40%),
-      radial-gradient(circle at 85% 0%, rgba(79,240,224,0.10), transparent 45%);
+      radial-gradient(circle at 12% 10%, rgba(57,255,143,0.10), transparent 42%),
+      radial-gradient(circle at 88% 4%, rgba(255,213,74,0.10), transparent 46%);
     overflow-x:hidden;
-    -webkit-font-smoothing:antialiased;
   }
   h1,h2,h3,.brand{font-family:'Space Grotesk',sans-serif;}
   a{color:inherit;text-decoration:none;}
-  button{font-family:inherit;cursor:pointer;background:none;color:inherit;border:none;transition:transform .12s ease, background-color .15s ease, border-color .15s ease;}
+  button{font-family:inherit;cursor:pointer;background:none;color:inherit;border:none;transition:transform .12s ease, background-color .15s ease, border-color .15s ease, box-shadow .2s ease;}
   button:active{transform:scale(0.97);}
+  ::selection{background:var(--green-soft);}
 
-  header{
-    position:sticky;top:env(safe-area-inset-top,0px);z-index:20;
-    display:flex;align-items:center;justify-content:space-between;
-    padding:16px clamp(20px,5vw,64px); background:rgba(8,11,19,0.78); backdrop-filter:blur(12px);
-    border-bottom:1px solid var(--line);
-  }
-  .brand{font-size:19px;font-weight:600;letter-spacing:0.2px;display:flex;align-items:center;gap:9px;}
-  .brand svg{flex-shrink:0;}
+  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;display:flex;align-items:center;justify-content:space-between;padding:16px clamp(20px,5vw,64px);background:rgba(5,8,5,0.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+  .brand{font-size:19px;font-weight:600;display:flex;align-items:center;gap:9px;}
   nav.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:100px;padding:4px;}
   nav.tabs button{padding:8px 15px;border-radius:100px;font-size:13px;color:var(--muted);}
-  nav.tabs button.active{background:var(--cyan);color:#062421;font-weight:600;}
+  nav.tabs button.active{background:var(--green);color:#04170c;font-weight:600;box-shadow:0 0 16px var(--green-glow);}
   .cart-btn{display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:8px;border:1px solid var(--line);font-size:13px;}
-  .cart-btn span.n{color:var(--bg);background:var(--cyan);border-radius:5px;padding:1px 6px;font-weight:600;font-size:11px;}
+  .cart-btn span.n{color:#04170c;background:var(--green);border-radius:5px;padding:1px 6px;font-weight:600;font-size:11px;}
   @media (max-width:640px){ .brand .txt{display:none;} nav.tabs button{padding:8px 9px;font-size:11.5px;} }
 
   .view{display:none;animation:fadein .25s ease;}
@@ -51,140 +51,166 @@
   @media (prefers-reduced-motion:reduce){ .view{animation:none;} }
 
   .adbar{max-width:1280px;margin:14px auto 0;padding:0 clamp(20px,5vw,64px);}
-  .adbar-inner{
-    background:linear-gradient(90deg, rgba(140,124,255,0.14), rgba(79,240,224,0.10));
-    border:1px solid var(--line);border-radius:12px;padding:12px 18px;
-    display:flex;align-items:center;gap:12px;font-size:13px;
-  }
-  .adbar-inner .tag{background:var(--gold);color:#3a2400;font-weight:700;font-size:11px;padding:2px 8px;border-radius:100px;flex-shrink:0;}
-  .adbar-inner .txt b{color:var(--cyan);}
+  .adbar-inner{background:linear-gradient(90deg, rgba(57,255,143,0.14), rgba(255,213,74,0.12));border:1px solid var(--line);border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:12px;font-size:13px;box-shadow:0 0 22px rgba(57,255,143,0.08);}
+  .adbar-inner .tag{background:var(--gold);color:#2a1f00;font-weight:700;font-size:11px;padding:2px 8px;border-radius:100px;flex-shrink:0;text-shadow:none;}
+  .adbar-inner .txt b{color:var(--green);}
 
   .hero{padding:clamp(36px,7vw,72px) clamp(20px,5vw,64px) 26px;display:grid;grid-template-columns:1.1fr 0.9fr;gap:40px;align-items:center;max-width:1280px;margin:0 auto;}
   @media (max-width:900px){ .hero{grid-template-columns:1fr;} }
-  .kicker{color:var(--cyan);font-size:13px;font-weight:500;margin-bottom:16px;}
+  .kicker{color:var(--green);font-size:13px;font-weight:500;margin-bottom:16px;text-shadow:0 0 10px var(--green-soft);}
   .hero h1{font-size:clamp(34px,5.5vw,58px);line-height:1.04;font-weight:600;letter-spacing:-0.8px;}
-  .hero h1 em{font-style:normal;color:transparent;-webkit-background-clip:text;background-clip:text;background-image:linear-gradient(100deg,var(--cyan),var(--violet));}
+  .hero h1 em{font-style:normal;color:transparent;-webkit-background-clip:text;background-clip:text;background-image:linear-gradient(100deg,var(--green),var(--gold));filter:drop-shadow(0 0 18px rgba(57,255,143,0.35));}
   .hero p{margin-top:18px;color:var(--muted);font-size:16px;max-width:46ch;line-height:1.65;}
   .hero-cta{margin-top:28px;display:flex;gap:14px;flex-wrap:wrap;}
-  .btn-primary{background:var(--cyan);color:#062421;padding:13px 26px;border-radius:9px;font-weight:600;font-size:15px;box-shadow:0 0 24px rgba(79,240,224,0.3);}
-  .btn-primary:hover{box-shadow:0 0 32px rgba(79,240,224,0.45);}
+  .btn-primary{background:var(--green);color:#04170c;padding:13px 26px;border-radius:9px;font-weight:600;font-size:15px;box-shadow:0 0 26px var(--green-glow);}
+  .btn-primary:hover{box-shadow:0 0 38px var(--green-glow);}
+  .btn-gold{background:var(--gold);color:#2a1f00;padding:13px 26px;border-radius:9px;font-weight:600;font-size:15px;box-shadow:0 0 26px var(--gold-glow);}
   .btn-ghost{border:1px solid var(--line);padding:13px 26px;border-radius:9px;font-weight:500;font-size:15px;}
-  .btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);}
+  .btn-ghost:hover{border-color:var(--green);color:var(--green);}
   .btn-primary:disabled{opacity:0.5;cursor:not-allowed;box-shadow:none;}
-  .btn-small{border:1px solid var(--line);padding:8px 14px;border-radius:7px;font-size:12px;color:var(--cyan);}
-  .btn-small:hover{background:rgba(79,240,224,0.1);}
-  .btn-small.warn{color:#ff9db8;}
-  .btn-small.gold{color:var(--gold);border-color:rgba(255,193,99,0.4);}
+  .btn-small{border:1px solid var(--line);padding:8px 14px;border-radius:7px;font-size:12px;color:var(--green);}
+  .btn-small:hover{background:rgba(57,255,143,0.1);}
+  .btn-small.warn{color:var(--danger);}
+  .btn-small.gold{color:var(--gold);border-color:rgba(255,213,74,0.4);}
 
   .orb-wrap{position:relative;height:300px;display:flex;align-items:center;justify-content:center;}
-  .orb{width:250px;height:250px;border-radius:50%;background:radial-gradient(circle at 32% 28%, rgba(140,124,255,0.5), rgba(79,240,224,0.15) 55%, transparent 75%);filter:blur(2px);}
-  .ring{position:absolute;border:1px solid rgba(140,124,255,0.35);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
+  .orb{width:250px;height:250px;border-radius:50%;background:radial-gradient(circle at 32% 28%, rgba(255,213,74,0.5), rgba(57,255,143,0.18) 55%, transparent 75%);filter:blur(2px);}
+  .ring{position:absolute;border:1px solid var(--green-soft);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
   .ring.r1{width:310px;height:310px;animation:spin 22s linear infinite;}
-  .ring.r2{width:380px;height:380px;border-color:rgba(79,240,224,0.25);animation:spin 34s linear infinite reverse;}
-  .ring span{position:absolute;width:8px;height:8px;background:var(--gold);border-radius:50%;top:-4px;left:50%;box-shadow:0 0 10px var(--gold);}
+  .ring.r2{width:380px;height:380px;border-color:var(--gold-soft);animation:spin 34s linear infinite reverse;}
+  .ring span{position:absolute;width:8px;height:8px;background:var(--gold);border-radius:50%;top:-4px;left:50%;box-shadow:0 0 12px var(--gold);}
   @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
   @media (prefers-reduced-motion:reduce){ .ring{animation:none;} }
 
-  .cats{display:flex;gap:10px;overflow-x:auto;padding:8px clamp(20px,5vw,64px) 26px;max-width:1280px;margin:0 auto;}
+  .toolbar{max-width:1280px;margin:0 auto;padding:0 clamp(20px,5vw,64px) 16px;display:flex;gap:12px;flex-wrap:wrap;}
+  .toolbar input[type=text], .toolbar select{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px 14px;color:var(--text);font-size:14px;}
+  .toolbar input[type=text]{flex:1;min-width:180px;}
+  .toolbar input:focus, .toolbar select:focus{outline:2px solid var(--green);outline-offset:1px;}
+
+  .cats{display:flex;gap:10px;overflow-x:auto;padding:0 clamp(20px,5vw,64px) 26px;max-width:1280px;margin:0 auto;}
   .cats::-webkit-scrollbar{display:none;}
   .chip{white-space:nowrap;padding:9px 18px;border-radius:100px;border:1px solid var(--line);font-size:13px;color:var(--muted);flex-shrink:0;}
-  .chip.active{border-color:var(--cyan);color:var(--cyan);background:rgba(79,240,224,0.08);}
+  .chip.active{border-color:var(--green);color:var(--green);background:rgba(57,255,143,0.08);box-shadow:0 0 14px rgba(57,255,143,0.15);}
 
   section.shelf{max-width:1280px;margin:0 auto;padding:10px clamp(20px,5vw,64px) 46px;}
   .shelf-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px;}
   .shelf-head h2{font-size:24px;font-weight:600;}
   .shelf-head span{font-size:13px;color:var(--muted);}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;transition:border-color .2s, transform .2s, box-shadow .2s;}
-  .card:hover{border-color:var(--cyan);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,0.35);}
-  .cover{height:170px;position:relative;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;text-align:center;padding:14px;color:rgba(255,255,255,0.92);}
-  .cover::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.35));}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;transition:border-color .2s, transform .2s, box-shadow .2s;cursor:pointer;}
+  .card:hover{border-color:var(--green);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.45), 0 0 24px rgba(57,255,143,0.12);}
+  .cover{height:170px;position:relative;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;text-align:center;padding:14px;color:rgba(255,255,255,0.94);}
+  .cover::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.4));}
   .cover span{position:relative;z-index:1;}
-  .cover .oos{position:absolute;top:8px;right:8px;background:#3a1414;color:#ff9db8;font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px;z-index:2;}
+  .badge-row{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;z-index:2;}
+  .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px;}
+  .badge.oos{background:#3a1414;color:var(--danger);}
+  .badge.new{background:var(--green);color:#04170c;}
+  .badge.best{background:var(--gold);color:#2a1f00;}
   .meta{padding:14px 16px 16px;}
   .meta .author{font-size:12px;color:var(--muted);margin-bottom:4px;}
-  .meta .title{font-size:14px;font-weight:600;margin-bottom:10px;line-height:1.3;}
+  .meta .title{font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.3;}
+  .stars{font-size:11px;color:var(--gold);margin-bottom:10px;}
+  .stars .count{color:var(--muted);}
   .row{display:flex;justify-content:space-between;align-items:center;}
-  .price{color:var(--gold);font-weight:600;font-size:15px;}
-  .add{border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--cyan);}
-  .add:hover{background:rgba(79,240,224,0.1);}
+  .price{color:var(--gold);font-weight:600;font-size:15px;text-shadow:0 0 10px var(--gold-soft);}
+  .add{border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--green);}
+  .add:hover{background:rgba(57,255,143,0.1);}
   .add:disabled{color:var(--muted);cursor:not-allowed;}
 
-  .trust{max-width:1280px;margin:0 auto;padding:10px clamp(20px,5vw,64px) 60px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .trust{max-width:1280px;margin:0 auto;padding:10px clamp(20px,5vw,64px) 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
   @media (max-width:760px){ .trust{grid-template-columns:1fr;} }
   .trust .item{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;}
-  .trust .item h3{font-size:14px;margin-bottom:6px;}
+  .trust .item h3{font-size:14px;margin-bottom:6px;color:var(--green);}
   .trust .item p{font-size:13px;color:var(--muted);line-height:1.5;}
+
+  .faq{max-width:1280px;margin:0 auto;padding:10px clamp(20px,5vw,64px) 60px;}
+  .faq h2{font-size:22px;margin-bottom:16px;}
+  .faq details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px;}
+  .faq summary{cursor:pointer;font-weight:600;font-size:14px;}
+  .faq p{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6;}
 
   .panel{max-width:680px;margin:0 auto;padding:clamp(30px,6vw,50px) 0 60px;}
   .panel-inner{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:clamp(22px,5vw,34px);margin:0 20px 20px;}
   @media(min-width:720px){ .panel-inner{margin:0 0 20px;} }
   .panel h2{font-size:22px;margin-bottom:6px;}
-  .panel h3.sub-head{font-size:16px;margin-bottom:4px;}
+  .panel h3.sub-head{font-size:16px;margin-bottom:4px;color:var(--green);}
   .panel .sub{color:var(--muted);font-size:14px;margin-bottom:26px;}
   label{display:block;font-size:13px;color:var(--muted);margin:16px 0 6px;}
   label:first-of-type{margin-top:0;}
-  input[type=text], input[type=number], input[type=tel], textarea, select{
-    width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:9px;
-    padding:11px 13px;color:var(--text);font-size:14px;font-family:inherit;
+  input[type=text], input[type=number], input[type=tel], input[type=email], textarea, select{
+    width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:11px 13px;color:var(--text);font-size:14px;font-family:inherit;
   }
-  input:focus, textarea:focus, select:focus{outline:2px solid var(--cyan);outline-offset:1px;}
+  input:focus, textarea:focus, select:focus{outline:2px solid var(--green);outline-offset:1px;}
   textarea{resize:vertical;min-height:80px;}
   .check-row{display:flex;align-items:center;gap:10px;margin-top:16px;}
   .check-row input{width:auto;}
   .field-hint{font-size:12px;color:var(--muted);margin-top:6px;}
   .terms-box{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px;}
   .divider{border-top:1px solid var(--line);margin:26px 0;}
-  .account-box{background:var(--surface2);border:1px dashed rgba(79,240,224,0.4);border-radius:12px;padding:16px 18px;margin-top:8px;}
+  .account-box{background:var(--surface2);border:1px dashed var(--gold-soft);border-radius:12px;padding:16px 18px;margin-top:8px;}
   .account-box .row{padding:4px 0;font-size:14px;}
   .account-box .row span:first-child{color:var(--muted);}
-  .account-box .row span:last-child{font-weight:600;color:var(--cyan);text-align:right;}
-  .status-msg{margin-top:18px;padding:12px 14px;border-radius:9px;background:rgba(79,240,224,0.08);border:1px solid rgba(79,240,224,0.3);font-size:13px;color:var(--cyan);display:none;}
-  .status-msg.show{display:block;}
-  .status-msg.error{background:rgba(255,108,156,0.08);border-color:rgba(255,108,156,0.4);color:#ff9db8;}
-  .paid-badge{display:inline-block;background:var(--cyan);color:#062421;font-weight:700;font-size:12px;padding:3px 10px;border-radius:100px;margin-bottom:10px;}
+  .account-box .row span:last-child{font-weight:600;color:var(--gold);text-align:right;}
+  .paid-badge{display:inline-block;background:var(--green);color:#04170c;font-weight:700;font-size:12px;padding:3px 10px;border-radius:100px;margin-bottom:10px;box-shadow:0 0 14px var(--green-glow);}
   .timeline{margin-top:26px;}
   .tl-item{display:flex;gap:14px;padding-bottom:22px;position:relative;}
   .tl-item:not(:last-child)::before{content:'';position:absolute;left:6px;top:16px;bottom:0;width:1px;background:var(--line);}
   .tl-dot{width:13px;height:13px;border-radius:50%;background:var(--surface2);border:2px solid var(--line);flex-shrink:0;margin-top:2px;}
-  .tl-item.done .tl-dot{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 8px var(--cyan);}
+  .tl-item.done .tl-dot{background:var(--green);border-color:var(--green);box-shadow:0 0 10px var(--green-glow);}
   .tl-item h4{font-size:14px;}
   .tl-item p{font-size:12px;color:var(--muted);margin-top:2px;}
 
   .order-card{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:12px;}
   .order-card .row{margin-bottom:4px;}
-  .order-card .tag-ext{background:var(--violet);color:#fff;font-size:10px;padding:2px 7px;border-radius:100px;margin-left:6px;}
+  .order-card .tag-ext{background:var(--gold);color:#2a1f00;font-size:10px;padding:2px 7px;border-radius:100px;margin-left:6px;}
   .order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
   .status-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;}
-  .status-pill.pending{background:rgba(255,193,99,0.15);color:var(--gold);}
-  .status-pill.confirmed{background:rgba(79,240,224,0.15);color:var(--cyan);}
-
+  .status-pill.pending{background:rgba(255,213,74,0.15);color:var(--gold);}
+  .status-pill.confirmed{background:rgba(57,255,143,0.15);color:var(--green);}
   .history-item{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line);}
   .history-item:last-child{border-bottom:none;}
   .history-item span:last-child{color:var(--muted);}
 
-  .overlay{position:fixed;inset:0;background:rgba(4,6,11,0.7);backdrop-filter:blur(4px);z-index:50;display:none;align-items:flex-end;justify-content:center;}
+  .qty-row{display:flex;align-items:center;gap:12px;margin-top:8px;}
+  .qty-row button{border:1px solid var(--line);width:32px;height:32px;border-radius:8px;font-size:16px;}
+  .qty-row span{min-width:24px;text-align:center;font-weight:600;}
+
+  .overlay{position:fixed;inset:0;background:rgba(2,4,2,0.72);backdrop-filter:blur(4px);z-index:50;display:none;align-items:flex-end;justify-content:center;}
   .overlay.show{display:flex;}
   @media(min-width:640px){ .overlay{align-items:center;} }
-  .modal{background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 0 0;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;padding:26px 24px calc(26px + env(safe-area-inset-bottom,0px));}
+  .modal{background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 0 0;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;padding:26px 24px calc(26px + env(safe-area-inset-bottom,0px));}
   @media(min-width:640px){ .modal{border-radius:18px;} }
   .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
   .modal-head h3{font-size:18px;}
   .close-x{font-size:14px;color:var(--muted);border:1px solid var(--line);border-radius:7px;padding:6px 10px;}
+  .review{border-bottom:1px solid var(--line);padding:10px 0;}
+  .review:last-child{border-bottom:none;}
+  .review .stars{margin-bottom:2px;}
+  .review p{font-size:13px;color:var(--muted);}
 
   #printArea{display:none;}
-  @media print{
-    body *{visibility:hidden;}
-    #printArea, #printArea *{visibility:visible;}
-    #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:40px;color:#000;background:#fff;}
-  }
+  @media print{ body *{visibility:hidden;} #printArea, #printArea *{visibility:visible;} #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:40px;color:#000;background:#fff;} }
 
-  footer{border-top:1px solid var(--line);max-width:1280px;margin:0 auto;padding:36px clamp(20px,5vw,64px);display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:20px;color:var(--muted);font-size:13px;}
+  #toasts{position:fixed;bottom:20px;right:20px;z-index:80;display:flex;flex-direction:column;gap:10px;max-width:320px;}
+  .toast{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:slidein .2s ease;}
+  .toast.success{border-color:var(--green);color:var(--green);}
+  .toast.error{border-color:var(--danger);color:var(--danger);}
+  @keyframes slidein{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+  #backTop{position:fixed;bottom:20px;left:20px;z-index:40;background:var(--surface);border:1px solid var(--green);border-radius:50%;width:42px;height:42px;color:var(--green);display:none;box-shadow:0 0 16px var(--green-glow);}
+  #backTop.show{display:block;}
+
+  .skeleton{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);height:260px;animation:pulse 1.4s ease infinite;}
+  @keyframes pulse{0%,100%{opacity:0.6;}50%{opacity:1;}}
+
+  footer{border-top:1px solid var(--line);max-width:1280px;margin:0 auto;padding:36px clamp(20px,5vw,64px);display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:20px;color:var(--muted);font-size:13px;}
   footer .fbrand{color:var(--text);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;margin-bottom:8px;}
-  footer .fcol h4{color:var(--text);font-size:12px;text-transform:none;margin-bottom:10px;}
+  footer .fcol h4{color:var(--text);font-size:12px;margin-bottom:10px;}
   footer .fcol div{margin-bottom:6px;}
-  footer .fcol div:hover{color:var(--cyan);cursor:pointer;}
-  @media(max-width:700px){ footer{grid-template-columns:1fr;} }
+  footer .fcol div:hover{color:var(--green);cursor:pointer;}
+  footer input{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;width:100%;margin-bottom:8px;}
+  @media(max-width:800px){ footer{grid-template-columns:1fr 1fr;} }
 </style>
 </head>
 <body>
@@ -192,9 +218,9 @@
 <header>
   <div class="brand">
     <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-      <defs><linearGradient id="g1" x1="0" y1="0" x2="26" y2="26"><stop stop-color="#4ff0e0"/><stop offset="1" stop-color="#8c7cff"/></linearGradient></defs>
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="26" y2="26"><stop stop-color="#39ff8f"/><stop offset="1" stop-color="#ffd54a"/></linearGradient></defs>
       <path d="M4 5C4 4 5 3 6 3H13V23H6C5 23 4 22 4 21V5Z" fill="url(#g1)" opacity="0.9"/>
-      <path d="M22 5C22 4 21 3 20 3H13V23H20C21 23 22 22 22 21V5Z" fill="url(#g1)" opacity="0.4"/>
+      <path d="M22 5C22 4 21 3 20 3H13V23H20C21 23 22 22 22 21V5Z" fill="url(#g1)" opacity="0.45"/>
     </svg>
     <span class="txt">Codex</span>
   </div>
@@ -223,28 +249,40 @@
     <div class="orb-wrap">
       <div class="orb"></div>
       <div class="ring r1"><span></span></div>
-      <div class="ring r2"><span style="background:var(--cyan);box-shadow:0 0 10px var(--cyan);"></span></div>
+      <div class="ring r2"><span style="background:var(--green);box-shadow:0 0 10px var(--green);"></span></div>
     </div>
   </section>
 
-  <div class="cats">
-    <div class="chip active">All</div>
-    <div class="chip">Fiction</div>
-    <div class="chip">Sci-Fi &amp; Fantasy</div>
-    <div class="chip">Business</div>
-    <div class="chip">Software &amp; Hardware</div>
-    <div class="chip">Self-help</div>
+  <div class="toolbar">
+    <input type="text" id="searchBox" placeholder="Search by title or author...">
+    <select id="sortBox">
+      <option value="default">Sort: Featured</option>
+      <option value="price-asc">Price: Low to High</option>
+      <option value="price-desc">Price: High to Low</option>
+      <option value="new">Newest first</option>
+      <option value="rating">Top rated</option>
+    </select>
   </div>
+
+  <div class="cats" id="catChips"></div>
 
   <section class="shelf" id="shelf">
     <div class="shelf-head"><h2>Trending this week</h2><span id="bookCount"></span></div>
-    <div class="grid" id="bookGrid"></div>
+    <div class="grid" id="bookGrid"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
   </section>
 
   <section class="trust">
     <div class="item"><h3>Pay the seller directly</h3><p>Every listing shows that seller's own account details. Send payment, then confirm it below.</p></div>
     <div class="item"><h3>Tracked from pack to door</h3><p>Confirming payment generates a tracking number and scratch code you can look up any time in the Track tab.</p></div>
-    <div class="item"><h3>Out-of-stock? You'll know fast</h3><p>Sellers can mark an item unavailable, and buyers see it instantly.</p></div>
+    <div class="item"><h3>Out-of-stock? You'll know fast</h3><p>Inventory updates live — sold out means sold out for everyone.</p></div>
+  </section>
+
+  <section class="faq">
+    <h2>Frequently asked</h2>
+    <details><summary>Who do I pay when I buy a book?</summary><p>You pay the seller directly, using the account details shown at checkout. Codex never touches that money.</p></details>
+    <details><summary>What's a scratch code for?</summary><p>It's a second reference, alongside your tracking number, that a seller can ask for to confirm your order is genuine.</p></details>
+    <details><summary>Can I return a book?</summary><p>Raise it with the seller directly from the Track tab's complaint form — they handle returns for their own listings.</p></details>
+    <details><summary>How do ads work?</summary><p>Sellers pay Codex directly to promote a listing. Ads only go live after Codex confirms the payment.</p></details>
   </section>
 </div>
 
@@ -252,50 +290,33 @@
   <div class="panel">
     <div class="panel-inner">
       <h2>List a book</h2>
-      <p class="sub">Set your own price. Buyers pay you directly at the account you give below.</p>
-
-      <label>Book title *</label>
-      <input type="text" id="s-title" placeholder="e.g. The Glass Horizon">
-      <label>Author *</label>
-      <input type="text" id="s-author" placeholder="e.g. Nadia Ferro">
-      <label>Description</label>
-      <textarea id="s-desc" placeholder="A short, honest description of the book"></textarea>
-      <label>Price (Naira) *</label>
-      <input type="number" id="s-price" placeholder="5000">
-      <label>Upload cover photo</label>
-      <input type="text" id="s-cover" readonly placeholder="Tap to choose a photo from your phone storage" data-fill="cover_photo.jpg attached">
-
+      <p class="sub">Set your own price and stock. Buyers pay you directly at the account you give below.</p>
+      <label>Book title *</label><input type="text" id="s-title" placeholder="e.g. The Glass Horizon">
+      <label>Author *</label><input type="text" id="s-author" placeholder="e.g. Nadia Ferro">
+      <label>Description</label><textarea id="s-desc" placeholder="A short, honest description of the book"></textarea>
+      <label>Category</label>
+      <select id="s-category"><option>Fiction</option><option>Sci-Fi & Fantasy</option><option>Business</option><option>Software & Hardware</option><option>Self-help</option></select>
+      <label>Price (Naira) *</label><input type="number" id="s-price" placeholder="5000">
+      <label>Stock quantity</label><input type="number" id="s-qty" placeholder="10">
+      <label>Upload cover photo</label><input type="text" id="s-cover" readonly placeholder="Tap to choose a photo from your phone storage" data-fill="cover_photo.jpg attached">
       <div class="divider"></div>
       <h3 class="sub-head">Your payout details</h3>
       <p class="field-hint" style="margin-bottom:6px;">Your own account — shown to buyers of this book so they can pay you directly.</p>
-      <label>Account name *</label>
-      <input type="text" id="s-acc-name" placeholder="Name on the account">
-      <label>Account number *</label>
-      <input type="text" id="s-acc-num" placeholder="10-digit account number">
+      <label>Account name *</label><input type="text" id="s-acc-name" placeholder="Name on the account">
+      <label>Account number *</label><input type="text" id="s-acc-num" placeholder="10-digit account number">
       <label>Account type *</label>
-      <select id="s-acc-type">
-        <option value="">Select provider</option>
-        <option>Opay</option><option>Kuda</option><option>PalmPay</option><option>Bank transfer</option>
-      </select>
-      <label>Phone number (for buyers to call and confirm) *</label>
-      <input type="tel" id="s-phone" placeholder="080...">
-
+      <select id="s-acc-type"><option value="">Select provider</option><option>Opay</option><option>Kuda</option><option>PalmPay</option><option>Bank transfer</option></select>
+      <label>Phone number (for buyers to call and confirm) *</label><input type="tel" id="s-phone" placeholder="080...">
       <button class="btn-primary" style="width:100%;margin-top:24px;" id="publishBtn">Publish listing</button>
-      <div class="status-msg" id="sell-status"></div>
     </div>
 
     <div class="panel-inner">
       <h3 class="sub-head">Run an ad for one of your listings</h3>
       <p class="field-hint" style="margin-top:-2px;margin-bottom:16px;">Ads are paid to Codex, not to the seller. Your ad goes live once payment is confirmed.</p>
-      <label>Which listing?</label>
-      <select id="ad-book"></select>
-      <label>Ad description *</label>
-      <textarea id="s-ad-desc" placeholder="What should this ad say?"></textarea>
-      <label>Upload ad video *</label>
-      <input type="text" id="s-ad-video" readonly placeholder="Tap to choose a video from your phone storage" data-fill="ad_clip.mp4 attached - ready to go live">
-      <label>Rate per hour (Naira, max 7,000) *</label>
-      <input type="number" id="s-ad-rate" placeholder="3500" max="7000">
-
+      <label>Which listing?</label><select id="ad-book"></select>
+      <label>Ad description *</label><textarea id="s-ad-desc" placeholder="What should this ad say?"></textarea>
+      <label>Upload ad video *</label><input type="text" id="s-ad-video" readonly placeholder="Tap to choose a video from your phone storage" data-fill="ad_clip.mp4 attached - ready to go live">
+      <label>Rate per hour (Naira, max 7,000) *</label><input type="number" id="s-ad-rate" placeholder="3500" max="7000">
       <div class="divider"></div>
       <p class="field-hint" style="margin-bottom:8px;">Pay Codex using the account below, then upload your proof of payment.</p>
       <div class="account-box">
@@ -303,31 +324,23 @@
         <div class="row"><span>Account number</span><span>8085743879</span></div>
         <div class="row"><span>Account type</span><span>Opay</span></div>
       </div>
-      <label>Upload proof of payment *</label>
-      <input type="text" id="ad-proof" readonly placeholder="Tap to choose a screenshot" data-fill="ad_payment_screenshot.jpg attached">
-
-      <button class="btn-primary" style="width:100%;margin-top:20px;" id="submitAdBtn">Submit ad for confirmation</button>
-      <div class="status-msg" id="ad-status"></div>
+      <label>Upload proof of payment *</label><input type="text" id="ad-proof" readonly placeholder="Tap to choose a screenshot" data-fill="ad_payment_screenshot.jpg attached">
+      <button class="btn-gold" style="width:100%;margin-top:20px;" id="submitAdBtn">Submit ad for confirmation</button>
     </div>
 
     <div class="panel-inner">
       <h3 class="sub-head">Log an order from another platform</h3>
       <p class="field-hint" style="margin-top:-2px;margin-bottom:16px;">For orders that came through Instagram, Jumia, or anywhere else outside Codex.</p>
-      <label>Platform</label>
-      <select id="ext-platform"><option>Instagram</option><option>Jumia</option><option>WhatsApp</option><option>Other</option></select>
-      <label>Book / item title</label>
-      <input type="text" id="ext-title" placeholder="What did they order?">
-      <label>Buyer name</label>
-      <input type="text" id="ext-buyer" placeholder="Buyer's name">
-      <label>Price (Naira)</label>
-      <input type="number" id="ext-price" placeholder="5000">
+      <label>Platform</label><select id="ext-platform"><option>Instagram</option><option>Jumia</option><option>WhatsApp</option><option>Other</option></select>
+      <label>Book / item title</label><input type="text" id="ext-title" placeholder="What did they order?">
+      <label>Buyer name</label><input type="text" id="ext-buyer" placeholder="Buyer's name">
+      <label>Price (Naira)</label><input type="number" id="ext-price" placeholder="5000">
       <button class="btn-ghost" style="width:100%;margin-top:18px;" id="logExtBtn">Log order and get tracking number</button>
-      <div class="status-msg" id="ext-status"></div>
     </div>
 
     <div class="panel-inner">
       <h3 class="sub-head">Manage listings and orders</h3>
-      <p class="field-hint" style="margin-top:-2px;margin-bottom:8px;">Mark items out of stock, confirm ad payments, print a waybill, or send a tracking number over WhatsApp.</p>
+      <p class="field-hint" style="margin-top:-2px;margin-bottom:8px;">Mark items out of stock, print a waybill, or send a tracking number over WhatsApp. Confirming an ad payment needs the admin key.</p>
       <div id="manageList"></div>
     </div>
   </div>
@@ -337,26 +350,19 @@
   <div class="panel">
     <div class="panel-inner">
       <h2>Platform subscription</h2>
-      <p class="sub">This section is for the company that licenses and operates Codex. It has nothing to do with what readers or sellers pay.</p>
-
+      <p class="sub">This section is for the company that licenses and operates Codex. It has nothing to do with what readers or sellers pay. Admin key required to confirm payment.</p>
       <div class="account-box" style="margin-bottom:18px;">
         <div class="row"><span>Monthly fee</span><span>Naira 500,000</span></div>
         <div class="row"><span>Status</span><span id="subStatus">No payment recorded yet</span></div>
       </div>
-
       <div class="account-box">
         <div class="row"><span>Account name</span><span>Dauda Joseph</span></div>
         <div class="row"><span>Account number</span><span>8085743879</span></div>
         <div class="row"><span>Account type</span><span>Opay</span></div>
       </div>
-
-      <label>Upload proof of payment *</label>
-      <input type="text" id="sub-proof" readonly placeholder="Tap to choose a screenshot" data-fill="subscription_payment_screenshot.jpg attached">
-
-      <button class="btn-primary" style="width:100%;margin-top:20px;" id="paySubBtn">I've paid this month's subscription</button>
-      <div class="status-msg" id="sub-status"></div>
+      <label>Upload proof of payment *</label><input type="text" id="sub-proof" readonly placeholder="Tap to choose a screenshot" data-fill="subscription_payment_screenshot.jpg attached">
+      <button class="btn-gold" style="width:100%;margin-top:20px;" id="paySubBtn">I've paid this month's subscription</button>
     </div>
-
     <div class="panel-inner">
       <h3 class="sub-head">Payment history</h3>
       <div id="subHistory"><p class="field-hint">No payments recorded yet.</p></div>
@@ -369,11 +375,8 @@
     <div class="panel-inner">
       <h2>Track your order</h2>
       <p class="sub">Enter the tracking number you got after confirming payment.</p>
-      <label>Tracking number</label>
-      <input type="text" id="t-num" placeholder="e.g. CDX-48213">
+      <label>Tracking number</label><input type="text" id="t-num" placeholder="e.g. CDX-48213">
       <button class="btn-primary" style="width:100%;margin-top:18px;" id="trackBtn">Track order</button>
-      <div class="status-msg error" id="track-error">No order found with that tracking number.</div>
-
       <div id="timeline" class="timeline" style="display:none;">
         <span class="paid-badge">PAID SUCCESSFULLY</span>
         <p class="field-hint" id="track-book" style="margin-bottom:14px;"></p>
@@ -383,15 +386,11 @@
         <div class="tl-item" id="tl-dispatch"><div class="tl-dot"></div><div><h4>Dispatched</h4><p>Seller marks this once your item ships.</p></div></div>
         <div class="tl-item"><div class="tl-dot"></div><div><h4>Delivered</h4><p>Awaiting confirmation.</p></div></div>
       </div>
-
       <div class="divider"></div>
       <h3 style="font-size:15px;margin-bottom:4px;">Have a complaint about a product?</h3>
-      <label>Order / tracking number</label>
-      <input type="text" id="c-num" placeholder="CDX-48213">
-      <label>Message</label>
-      <textarea id="c-msg" placeholder="Tell us what went wrong"></textarea>
+      <label>Order / tracking number</label><input type="text" id="c-num" placeholder="CDX-48213">
+      <label>Message</label><textarea id="c-msg" placeholder="Tell us what went wrong"></textarea>
       <button class="btn-ghost" style="width:100%;margin-top:14px;" id="complaintBtn">Send to seller</button>
-      <div class="status-msg" id="complaint-status">Message sent. The seller can reply by DM.</div>
     </div>
   </div>
 </div>
@@ -400,76 +399,151 @@
   <div class="fcol"><div class="fbrand">Codex</div><div style="color:var(--muted);">A marketplace where readers pay sellers directly, and sellers keep what they sell.</div></div>
   <div class="fcol"><h4>Marketplace</h4><div data-nav="shop">Shop</div><div data-nav="sell">Sell on Codex</div><div data-nav="track">Track an order</div></div>
   <div class="fcol"><h4>Platform</h4><div data-nav="company">Company subscription</div><div>Contact a seller</div></div>
+  <div class="fcol"><h4>Stay updated</h4><input type="email" id="newsEmail" placeholder="you@email.com"><button class="btn-small" id="newsBtn" style="width:100%;">Subscribe</button></div>
 </footer>
 
 <div class="overlay" id="checkoutOverlay">
   <div class="modal">
     <div class="modal-head"><h3>Complete payment</h3><button class="close-x" id="closeModalBtn">Close</button></div>
     <p class="sub" style="margin-bottom:4px;" id="modalBookTitle"></p>
-    <p class="price" id="modalBookPrice" style="font-size:20px;"></p>
+    <div class="qty-row"><span style="color:var(--muted);font-size:13px;">Quantity</span><button id="qtyMinus">-</button><span id="qtyVal">1</span><button id="qtyPlus">+</button></div>
+    <p class="price" id="modalBookPrice" style="font-size:20px;margin-top:10px;"></p>
+    <div class="divider"></div>
+    <label>Have a coupon code?</label>
+    <div style="display:flex;gap:8px;"><input type="text" id="couponInput" placeholder="e.g. WELCOME10"><button class="btn-small" id="applyCouponBtn">Apply</button></div>
     <div class="divider"></div>
     <p class="field-hint" style="margin-bottom:8px;">Pay this seller directly using their details below, then confirm your payment.</p>
     <div class="account-box" id="modalAccountBox"></div>
     <div class="terms-box">Cash-on-delivery terms: full payment is confirmed before dispatch. If an item goes out of stock after ordering, you'll be notified within 2 hours and refunded.</div>
-    <label>Upload proof of payment</label>
-    <input type="text" readonly placeholder="Tap to choose a screenshot" data-fill="payment_screenshot.jpg attached">
-    <div class="check-row">
-      <input type="checkbox" id="cod-terms">
-      <label style="margin:0;">I agree to these terms</label>
-    </div>
+    <label>Upload proof of payment</label><input type="text" readonly placeholder="Tap to choose a screenshot" data-fill="payment_screenshot.jpg attached">
+    <div class="check-row"><input type="checkbox" id="cod-terms"><label style="margin:0;">I agree to these terms</label></div>
     <button class="btn-primary" style="width:100%;margin-top:20px;" id="confirmBtn">I've sent payment</button>
-    <div class="status-msg" id="checkout-status"></div>
+  </div>
+</div>
+
+<div class="overlay" id="detailOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3 id="detailTitle"></h3><button class="close-x" id="closeDetailBtn">Close</button></div>
+    <p class="field-hint" id="detailAuthor" style="margin-bottom:10px;"></p>
+    <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:14px;" id="detailDesc"></p>
+    <p class="price" id="detailPrice" style="font-size:18px;margin-bottom:16px;"></p>
+    <button class="btn-primary" style="width:100%;" id="detailBuyBtn">Buy this book</button>
+    <div class="divider"></div>
+    <h3 class="sub-head">Reviews</h3>
+    <div id="reviewList" style="margin-bottom:16px;"></div>
+    <label>Your name</label><input type="text" id="rv-name" placeholder="Your name">
+    <label>Rating</label><select id="rv-stars"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Okay</option><option value="2">2 - Not great</option><option value="1">1 - Poor</option></select>
+    <label>Your review</label><textarea id="rv-comment" placeholder="What did you think?"></textarea>
+    <button class="btn-ghost" style="width:100%;margin-top:14px;" id="submitReviewBtn">Submit review</button>
   </div>
 </div>
 
 <div id="printArea"></div>
+<div id="toasts"></div>
+<button id="backTop" title="Back to top">&uarr;</button>
 
 <script>
   function esc(s){ var d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+  function money(n){ return 'Naira ' + Number(n || 0).toLocaleString(); }
+  function stars(n){ var s=''; for(var i=0;i<5;i++){ s += i < Math.round(n) ? '\u2605' : '\u2606'; } return s; }
+  function avgStars(reviews){ if(!reviews || reviews.length===0) return 0; var sum=0; reviews.forEach(function(r){sum+=r.stars;}); return sum/reviews.length; }
 
-  var books = [];
-  var orders = [];
-  var subscription = {history: []};
-  var activeBookId = null;
+  function toast(msg, type){
+    var el = document.createElement('div');
+    el.className = 'toast' + (type ? ' ' + type : '');
+    el.textContent = msg;
+    document.getElementById('toasts').appendChild(el);
+    setTimeout(function(){ el.remove(); }, 4500);
+  }
 
-  async function api(url, method, body){
+  var ADMIN_KEY_STORAGE = 'codex_admin_key';
+  function getAdminKey(promptIfMissing){
+    var k = sessionStorage.getItem(ADMIN_KEY_STORAGE);
+    if(!k && promptIfMissing){
+      k = window.prompt('Enter the Codex admin key:');
+      if(k) sessionStorage.setItem(ADMIN_KEY_STORAGE, k);
+    }
+    return k;
+  }
+
+  var books = [], orders = [], subscription = {history:[]};
+  var activeBookId = null, activeQty = 1, activeCoupon = null;
+  var currentCategory = 'All', currentSort = 'default', currentSearch = '';
+
+  async function api(url, method, body, adminAction){
     var opts = { method: method || 'GET', headers: {} };
     if(body){ opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+    if(adminAction){ var k = getAdminKey(true); if(k) opts.headers['x-admin-key'] = k; }
     var res = await fetch(url, opts);
     var data = await res.json().catch(function(){ return {}; });
-    if(!res.ok) throw (data.error || 'request failed');
+    if(!res.ok){
+      if(res.status === 401 && adminAction) sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+      throw (data.error || 'Request failed');
+    }
     return data;
   }
 
   async function loadState(){
-    var state = await api('/api/state');
-    books = state.books;
-    orders = state.orders;
-    subscription = state.subscription;
-    renderBooks();
-    renderSubscription();
-    setupAdRotation();
+    try{
+      var state = await api('/api/state');
+      books = state.books; orders = state.orders; subscription = state.subscription;
+      renderCategoryChips();
+      renderBooks();
+      renderSubscription();
+      setupAdRotation();
+    }catch(e){ toast('Could not load the shop: ' + e, 'error'); }
   }
 
   function findBook(id){ for(var i=0;i<books.length;i++){ if(books[i].id === id) return books[i]; } return null; }
 
-  function renderBooks(){
-    var grid = document.getElementById('bookGrid');
-    grid.innerHTML = books.map(function(b){
-      return '<div class="card">' +
-        '<div class="cover" style="background:' + b.grad + '">' +
-          (b.outOfStock ? '<span class="oos">OUT OF STOCK</span>' : '') +
-          '<span>' + esc(b.title) + '</span></div>' +
-        '<div class="meta">' +
-          '<div class="author">' + esc(b.author) + '</div>' +
-          '<div class="title">' + esc(b.title) + '</div>' +
-          '<div class="row"><span class="price">Naira ' + b.price.toLocaleString() + '</span>' +
-          '<button class="add" ' + (b.outOfStock ? 'disabled' : '') + ' data-buy="' + b.id + '">' + (b.outOfStock ? 'Sold out' : 'Buy') + '</button></div>' +
-        '</div></div>';
+  function renderCategoryChips(){
+    var cats = ['All'];
+    books.forEach(function(b){ if(cats.indexOf(b.category) === -1) cats.push(b.category); });
+    document.getElementById('catChips').innerHTML = cats.map(function(c){
+      return '<div class="chip ' + (c===currentCategory?'active':'') + '" data-cat="' + esc(c) + '">' + esc(c) + '</div>';
     }).join('');
-    document.getElementById('bookCount').textContent = books.length + ' titles';
-    document.getElementById('cartCount').textContent = orders.length;
+  }
+  document.getElementById('catChips').addEventListener('click', function(e){
+    var chip = e.target.closest('.chip');
+    if(chip){ currentCategory = chip.dataset.cat; renderBooks(); renderCategoryChips(); }
+  });
+  document.getElementById('searchBox').addEventListener('input', function(e){ currentSearch = e.target.value.toLowerCase(); renderBooks(); });
+  document.getElementById('sortBox').addEventListener('change', function(e){ currentSort = e.target.value; renderBooks(); });
 
+  function visibleBooks(){
+    var list = books.slice();
+    if(currentCategory !== 'All') list = list.filter(function(b){ return b.category === currentCategory; });
+    if(currentSearch) list = list.filter(function(b){ return (b.title + ' ' + b.author).toLowerCase().indexOf(currentSearch) !== -1; });
+    if(currentSort === 'price-asc') list.sort(function(a,b){ return a.price - b.price; });
+    else if(currentSort === 'price-desc') list.sort(function(a,b){ return b.price - a.price; });
+    else if(currentSort === 'new') list.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
+    else if(currentSort === 'rating') list.sort(function(a,b){ return avgStars(b.reviews) - avgStars(a.reviews); });
+    return list;
+  }
+
+  function renderBooks(){
+    var list = visibleBooks();
+    var grid = document.getElementById('bookGrid');
+    if(list.length === 0){
+      grid.innerHTML = '<p class="field-hint">No books match your search.</p>';
+    } else {
+      grid.innerHTML = list.map(function(b){
+        var avg = avgStars(b.reviews);
+        return '<div class="card" data-open="' + b.id + '">' +
+          '<div class="cover" style="background:' + b.grad + '">' +
+            '<div class="badge-row"><span>' + (b.outOfStock ? '<span class="badge oos">OUT OF STOCK</span>' : (b.isNew ? '<span class="badge new">NEW</span>' : '')) + '</span><span>' + (b.isBestseller ? '<span class="badge best">BESTSELLER</span>' : '') + '</span></div>' +
+            '<span>' + esc(b.title) + '</span></div>' +
+          '<div class="meta">' +
+            '<div class="author">' + esc(b.author) + '</div>' +
+            '<div class="title">' + esc(b.title) + '</div>' +
+            '<div class="stars">' + (b.reviews.length ? stars(avg) + ' <span class="count">(' + b.reviews.length + ')</span>' : '<span class="count">No reviews yet</span>') + '</div>' +
+            '<div class="row"><span class="price">' + money(b.price) + '</span>' +
+            '<button class="add" ' + (b.outOfStock ? 'disabled' : '') + ' data-buy="' + b.id + '">' + (b.outOfStock ? 'Sold out' : 'Buy') + '</button></div>' +
+          '</div></div>';
+      }).join('');
+    }
+    document.getElementById('bookCount').textContent = list.length + ' of ' + books.length + ' titles';
+    document.getElementById('cartCount').textContent = orders.length;
     var adSelect = document.getElementById('ad-book');
     adSelect.innerHTML = books.map(function(b){ return '<option value="' + b.id + '">' + esc(b.title) + '</option>'; }).join('');
     renderManageList();
@@ -482,35 +556,32 @@
       var adBadge = '';
       if(b.ad){ adBadge = ' <span class="status-pill ' + (b.ad.confirmed ? 'confirmed">Ad live' : 'pending">Ad pending payment') + '</span>'; }
       var adBtn = '';
-      if(b.ad && !b.ad.confirmed){ adBtn = '<button class="btn-small gold" data-confirmad="' + b.id + '">Confirm ad payment</button>'; }
-      return '<div class="order-card"><div class="row"><span>' + esc(b.title) + adBadge + '</span><span class="price">Naira ' + b.price.toLocaleString() + '</span></div>' +
+      if(b.ad && !b.ad.confirmed){ adBtn = '<button class="btn-small gold" data-confirmad="' + b.id + '">Confirm ad payment (admin)</button>'; }
+      return '<div class="order-card"><div class="row"><span>' + esc(b.title) + adBadge + '</span><span class="price">' + money(b.price) + '</span></div>' +
+        '<div class="field-hint">Stock: ' + b.quantity + '</div>' +
         '<div class="order-actions"><button class="btn-small ' + (b.outOfStock?'':'warn') + '" data-stock="' + b.id + '">' + (b.outOfStock ? 'Mark back in stock' : 'Mark out of stock') + '</button>' + adBtn + '</div></div>';
     }).join('');
-
     html += '<h4 style="font-size:13px;color:var(--muted);margin:18px 0 6px;">Orders</h4>';
-    if(orders.length === 0){
-      html += '<p class="field-hint">No orders yet.</p>';
-    } else {
+    if(orders.length === 0){ html += '<p class="field-hint">No orders yet.</p>'; }
+    else {
       html += orders.slice().reverse().map(function(o){
         return '<div class="order-card">' +
-          '<div class="row"><span>' + esc(o.tracking) + (o.external ? '<span class="tag-ext">' + esc(o.platform) + '</span>' : '') + '</span><span class="price">Naira ' + Number(o.price).toLocaleString() + '</span></div>' +
-          '<div class="field-hint">' + esc(o.title) + (o.buyer ? ' - buyer: ' + esc(o.buyer) : '') + '</div>' +
-          '<div class="order-actions">' +
-            '<button class="btn-small" data-waybill="' + esc(o.tracking) + '">Print waybill</button>' +
-            '<button class="btn-small" data-wa="' + esc(o.tracking) + '">Send via WhatsApp</button>' +
-          '</div></div>';
+          '<div class="row"><span>' + esc(o.tracking) + (o.external ? '<span class="tag-ext">' + esc(o.platform) + '</span>' : '') + '</span><span class="price">' + money(o.price) + '</span></div>' +
+          '<div class="field-hint">' + esc(o.title) + (o.buyer ? ' - buyer: ' + esc(o.buyer) : '') + (o.qty ? ' - qty: ' + o.qty : '') + '</div>' +
+          '<div class="order-actions"><button class="btn-small" data-waybill="' + esc(o.tracking) + '">Print waybill</button><button class="btn-small" data-wa="' + esc(o.tracking) + '">Send via WhatsApp</button></div></div>';
       }).join('');
     }
     el.innerHTML = html;
   }
 
   document.getElementById('bookGrid').addEventListener('click', function(e){
-    var btn = e.target.closest('button[data-buy]');
-    if(btn) openCheckout(parseInt(btn.dataset.buy));
+    var openCard = e.target.closest('[data-open]');
+    var buyBtn = e.target.closest('button[data-buy]');
+    if(buyBtn){ openCheckout(parseInt(buyBtn.dataset.buy)); return; }
+    if(openCard){ openDetail(parseInt(openCard.dataset.open)); }
   });
   document.getElementById('manageList').addEventListener('click', function(e){
-    var t = e.target;
-    var b;
+    var t = e.target, b;
     if(b = t.closest('button[data-stock]')) toggleStock(parseInt(b.dataset.stock));
     else if(b = t.closest('button[data-confirmad]')) confirmAd(parseInt(b.dataset.confirmad));
     else if(b = t.closest('button[data-waybill]')) printWaybill(b.dataset.waybill);
@@ -523,8 +594,8 @@
     if(nav) switchView(nav.dataset.nav);
   });
 
-  async function toggleStock(id){ await api('/api/books/' + id + '/stock', 'POST'); await loadState(); }
-  async function confirmAd(id){ await api('/api/books/' + id + '/ad/confirm', 'POST'); await loadState(); }
+  async function toggleStock(id){ try{ await api('/api/books/' + id + '/stock', 'POST'); await loadState(); toast('Stock updated.', 'success'); }catch(e){ toast('' + e, 'error'); } }
+  async function confirmAd(id){ try{ await api('/api/books/' + id + '/ad/confirm', 'POST', null, true); await loadState(); toast('Ad confirmed and live.', 'success'); }catch(e){ toast('' + e, 'error'); } }
 
   function switchView(name){
     document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
@@ -532,63 +603,102 @@
     document.querySelectorAll('nav.tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.view === name); });
     window.scrollTo({top:0, behavior:'smooth'});
   }
-  document.querySelectorAll('nav.tabs button').forEach(function(b){
-    b.addEventListener('click', function(){ switchView(b.dataset.view); });
-  });
+  document.querySelectorAll('nav.tabs button').forEach(function(b){ b.addEventListener('click', function(){ switchView(b.dataset.view); }); });
 
   function openCheckout(id){
     var b = findBook(id);
     if(!b || b.outOfStock) return;
-    activeBookId = id;
+    activeBookId = id; activeQty = 1; activeCoupon = null;
+    document.getElementById('couponInput').value = '';
     document.getElementById('modalBookTitle').textContent = b.title + ' - ' + b.author;
-    document.getElementById('modalBookPrice').textContent = 'Naira ' + b.price.toLocaleString();
+    updateCheckoutPrice();
     document.getElementById('modalAccountBox').innerHTML =
       '<div class="row"><span>Account name</span><span>' + esc(b.accName) + '</span></div>' +
       '<div class="row"><span>Account number</span><span>' + esc(b.accNum) + '</span></div>' +
       '<div class="row"><span>Account type</span><span>' + esc(b.accType) + '</span></div>' +
       '<div class="row"><span>Seller phone</span><span>' + esc(b.phone) + '</span></div>';
-    document.getElementById('checkout-status').classList.remove('show');
     document.getElementById('cod-terms').checked = false;
     document.getElementById('confirmBtn').disabled = false;
     document.getElementById('checkoutOverlay').classList.add('show');
   }
+  function updateCheckoutPrice(){
+    var b = findBook(activeBookId);
+    document.getElementById('qtyVal').textContent = activeQty;
+    var unit = b.price;
+    if(activeCoupon) unit = Math.round(b.price * (1 - activeCoupon.percent / 100));
+    document.getElementById('modalBookPrice').textContent = money(unit * activeQty) + (activeCoupon ? ' (coupon applied)' : '');
+  }
+  document.getElementById('qtyPlus').addEventListener('click', function(){ var b = findBook(activeBookId); if(activeQty < b.quantity) activeQty++; updateCheckoutPrice(); });
+  document.getElementById('qtyMinus').addEventListener('click', function(){ if(activeQty > 1) activeQty--; updateCheckoutPrice(); });
+  document.getElementById('applyCouponBtn').addEventListener('click', async function(){
+    var code = document.getElementById('couponInput').value.trim();
+    if(!code) return;
+    try{ activeCoupon = await api('/api/coupons/' + encodeURIComponent(code)); updateCheckoutPrice(); toast('Coupon applied: ' + activeCoupon.percent + '% off', 'success'); }
+    catch(e){ activeCoupon = null; updateCheckoutPrice(); toast('Invalid coupon code.', 'error'); }
+  });
   document.getElementById('closeModalBtn').addEventListener('click', function(){ document.getElementById('checkoutOverlay').classList.remove('show'); });
 
   document.getElementById('confirmBtn').addEventListener('click', async function(){
-    if(!document.getElementById('cod-terms').checked){ alert('Please agree to the terms first.'); return; }
+    if(!document.getElementById('cod-terms').checked){ toast('Please agree to the terms first.', 'error'); return; }
     try{
-      var order = await api('/api/orders', 'POST', {bookId: activeBookId});
-      var el = document.getElementById('checkout-status');
-      el.innerHTML = 'PAID SUCCESSFULLY. Tracking number: <b>' + order.tracking + '</b>. Scratch code: <b>' + order.code + '</b>.';
-      el.classList.add('show');
+      var order = await api('/api/orders', 'POST', { bookId: activeBookId, qty: activeQty, coupon: activeCoupon ? activeCoupon.code : undefined });
+      toast('PAID SUCCESSFULLY. Tracking: ' + order.tracking + ' - Scratch code: ' + order.code, 'success');
       document.getElementById('confirmBtn').disabled = true;
       await loadState();
-    }catch(err){ alert('Could not complete order: ' + err); }
+    }catch(err){ toast('Could not complete order: ' + err, 'error'); }
   });
+
+  function openDetail(id){
+    var b = findBook(id);
+    document.getElementById('detailTitle').textContent = b.title;
+    document.getElementById('detailAuthor').textContent = 'by ' + b.author + ' - ' + b.category;
+    document.getElementById('detailDesc').textContent = b.description || 'No description provided.';
+    document.getElementById('detailPrice').textContent = money(b.price);
+    document.getElementById('detailBuyBtn').disabled = b.outOfStock;
+    document.getElementById('detailBuyBtn').textContent = b.outOfStock ? 'Sold out' : 'Buy this book';
+    document.getElementById('detailBuyBtn').onclick = function(){ document.getElementById('detailOverlay').classList.remove('show'); openCheckout(id); };
+    var rl = document.getElementById('reviewList');
+    rl.innerHTML = b.reviews.length ? b.reviews.map(function(r){
+      return '<div class="review"><div class="stars">' + stars(r.stars) + '</div><p><b>' + esc(r.name) + '</b> - ' + esc(r.comment) + '</p></div>';
+    }).join('') : '<p class="field-hint">No reviews yet - be the first.</p>';
+    document.getElementById('submitReviewBtn').onclick = async function(){
+      var name = document.getElementById('rv-name').value.trim();
+      var stars_ = document.getElementById('rv-stars').value;
+      var comment = document.getElementById('rv-comment').value.trim();
+      if(!name || !comment){ toast('Add your name and a comment.', 'error'); return; }
+      try{
+        await api('/api/books/' + id + '/reviews', 'POST', { name: name, stars: stars_, comment: comment });
+        await loadState();
+        openDetail(id);
+        document.getElementById('rv-name').value = ''; document.getElementById('rv-comment').value = '';
+        toast('Review posted, thank you.', 'success');
+      }catch(e){ toast('' + e, 'error'); }
+    };
+    document.getElementById('detailOverlay').classList.add('show');
+  }
+  document.getElementById('closeDetailBtn').addEventListener('click', function(){ document.getElementById('detailOverlay').classList.remove('show'); });
 
   document.getElementById('publishBtn').addEventListener('click', async function(){
     var title = document.getElementById('s-title').value.trim();
     var author = document.getElementById('s-author').value.trim();
+    var description = document.getElementById('s-desc').value.trim();
+    var category = document.getElementById('s-category').value;
     var price = parseInt(document.getElementById('s-price').value);
+    var quantity = parseInt(document.getElementById('s-qty').value) || 10;
     var accName = document.getElementById('s-acc-name').value.trim();
     var accNum = document.getElementById('s-acc-num').value.trim();
     var accType = document.getElementById('s-acc-type').value;
     var phone = document.getElementById('s-phone').value.trim();
-    var status = document.getElementById('sell-status');
     if(!title || !author || !price || !accName || !accNum || !accType || !phone){
-      status.textContent = 'Please fill in every field marked with a star before publishing.';
-      status.classList.add('show', 'error');
-      return;
+      toast('Please fill in every field marked with a star before publishing.', 'error'); return;
     }
-    status.classList.remove('error');
     try{
-      await api('/api/books', 'POST', {title:title, author:author, price:price, accName:accName, accNum:accNum, accType:accType, phone:phone});
+      await api('/api/books', 'POST', { title:title, author:author, description:description, category:category, price:price, quantity:quantity, accName:accName, accNum:accNum, accType:accType, phone:phone });
       await loadState();
-      status.textContent = 'Listing published. It is live on the Shop tab for everyone now.';
-      status.classList.add('show');
-      ['s-title','s-author','s-desc','s-price','s-cover','s-acc-name','s-acc-num','s-phone'].forEach(function(id){ document.getElementById(id).value = ''; });
+      toast('Listing published. It is live on the Shop tab for everyone now.', 'success');
+      ['s-title','s-author','s-desc','s-price','s-qty','s-cover','s-acc-name','s-acc-num','s-phone'].forEach(function(id){ document.getElementById(id).value = ''; });
       document.getElementById('s-acc-type').value = '';
-    }catch(err){ status.textContent = 'Could not publish: ' + err; status.classList.add('show','error'); }
+    }catch(err){ toast('Could not publish: ' + err, 'error'); }
   });
 
   document.getElementById('submitAdBtn').addEventListener('click', async function(){
@@ -597,23 +707,14 @@
     var video = document.getElementById('s-ad-video').value.trim();
     var rate = parseInt(document.getElementById('s-ad-rate').value) || 0;
     var proof = document.getElementById('ad-proof').value.trim();
-    var status = document.getElementById('ad-status');
-    if(isNaN(idx) || !desc || !video || !rate || !proof){
-      status.textContent = 'Please fill in every field marked with a star, including proof of payment.';
-      status.classList.add('show', 'error');
-      return;
-    }
-    status.classList.remove('error');
+    if(isNaN(idx) || !desc || !video || !rate || !proof){ toast('Please fill in every field marked with a star, including proof of payment.', 'error'); return; }
     try{
-      await api('/api/books/' + idx + '/ad', 'POST', {desc:desc, rate:rate});
+      await api('/api/books/' + idx + '/ad', 'POST', { desc:desc, rate:rate });
       await loadState();
-      status.textContent = 'Ad submitted. It will appear in the rotating ad banner once Codex confirms your payment (see Manage listings below).';
-      status.classList.add('show');
-      document.getElementById('s-ad-desc').value = '';
-      document.getElementById('s-ad-video').value = '';
-      document.getElementById('s-ad-rate').value = '';
-      document.getElementById('ad-proof').value = '';
-    }catch(err){ status.textContent = 'Could not submit ad: ' + err; status.classList.add('show','error'); }
+      toast('Ad submitted. It goes live once Codex confirms your payment.', 'success');
+      document.getElementById('s-ad-desc').value = ''; document.getElementById('s-ad-video').value = '';
+      document.getElementById('s-ad-rate').value = ''; document.getElementById('ad-proof').value = '';
+    }catch(err){ toast('Could not submit ad: ' + err, 'error'); }
   });
 
   document.getElementById('logExtBtn').addEventListener('click', async function(){
@@ -621,98 +722,80 @@
     var title = document.getElementById('ext-title').value.trim();
     var buyer = document.getElementById('ext-buyer').value.trim();
     var price = parseInt(document.getElementById('ext-price').value) || 0;
-    var status = document.getElementById('ext-status');
-    if(!title || !buyer){ status.textContent = 'Add at least the item title and buyer name.'; status.classList.add('show','error'); return; }
-    status.classList.remove('error');
+    if(!title || !buyer){ toast('Add at least the item title and buyer name.', 'error'); return; }
     try{
-      var order = await api('/api/orders/external', 'POST', {title:title, price:price, buyer:buyer, platform:platform});
+      var order = await api('/api/orders/external', 'POST', { title:title, price:price, buyer:buyer, platform:platform });
       await loadState();
-      status.innerHTML = 'Order logged. Tracking number: <b>' + order.tracking + '</b>. Share this with the buyer.';
-      status.classList.add('show');
+      toast('Order logged. Tracking number: ' + order.tracking, 'success');
       ['ext-title','ext-buyer','ext-price'].forEach(function(id){ document.getElementById(id).value = ''; });
-    }catch(err){ status.textContent = 'Could not log order: ' + err; status.classList.add('show','error'); }
+    }catch(err){ toast('Could not log order: ' + err, 'error'); }
   });
 
   document.getElementById('trackBtn').addEventListener('click', async function(){
     var num = document.getElementById('t-num').value.trim().toUpperCase();
     var timeline = document.getElementById('timeline');
-    var err = document.getElementById('track-error');
     try{
       var order = await api('/api/orders/' + encodeURIComponent(num));
-      document.getElementById('track-book').textContent = order.title + ' - Naira ' + Number(order.price).toLocaleString();
+      document.getElementById('track-book').textContent = order.title + ' - ' + money(order.price);
       document.getElementById('track-code').textContent = 'Scratch code: ' + (order.code || 'not issued for this order');
       document.getElementById('tl-dispatch').classList.toggle('done', !!order.dispatched);
       timeline.style.display = 'block';
-      err.classList.remove('show');
-    }catch(e){
-      timeline.style.display = 'none';
-      err.classList.add('show');
-    }
+    }catch(e){ timeline.style.display = 'none'; toast('No order found with that tracking number.', 'error'); }
   });
 
   document.getElementById('complaintBtn').addEventListener('click', async function(){
     var num = document.getElementById('c-num').value.trim();
     var msg = document.getElementById('c-msg').value.trim();
-    var status = document.getElementById('complaint-status');
-    if(!num || !msg){ status.textContent = 'Add both the order number and your message.'; status.classList.add('show','error'); return; }
-    await api('/api/complaints', 'POST', {tracking:num, message:msg});
-    status.classList.remove('error');
-    status.textContent = 'Message sent. The seller can reply by DM.';
-    status.classList.add('show');
-    document.getElementById('c-num').value = '';
-    document.getElementById('c-msg').value = '';
+    if(!num || !msg){ toast('Add both the order number and your message.', 'error'); return; }
+    try{ await api('/api/complaints', 'POST', { tracking:num, message:msg }); toast('Message sent. The seller can reply by DM.', 'success'); document.getElementById('c-num').value=''; document.getElementById('c-msg').value=''; }
+    catch(e){ toast('' + e, 'error'); }
   });
 
   document.getElementById('paySubBtn').addEventListener('click', async function(){
     var proof = document.getElementById('sub-proof').value.trim();
-    var status = document.getElementById('sub-status');
-    if(!proof){ status.textContent = 'Please attach proof of payment first.'; status.classList.add('show','error'); return; }
-    status.classList.remove('error');
-    var sub = await api('/api/subscription/pay', 'POST');
-    subscription = sub;
-    renderSubscription();
-    status.textContent = 'Payment recorded. Reference: ' + sub.history[0].reference + '.';
-    status.classList.add('show');
-    document.getElementById('sub-proof').value = '';
+    if(!proof){ toast('Please attach proof of payment first.', 'error'); return; }
+    try{
+      var sub = await api('/api/subscription/pay', 'POST', null, true);
+      subscription = sub; renderSubscription();
+      toast('Payment recorded. Reference: ' + sub.history[0].reference, 'success');
+      document.getElementById('sub-proof').value = '';
+    }catch(e){ toast('' + e, 'error'); }
+  });
+
+  document.getElementById('newsBtn').addEventListener('click', async function(){
+    var email = document.getElementById('newsEmail').value.trim();
+    try{ await api('/api/newsletter', 'POST', { email: email }); toast('Subscribed. Thanks!', 'success'); document.getElementById('newsEmail').value=''; }
+    catch(e){ toast('' + e, 'error'); }
   });
 
   function renderSubscription(){
     var statusEl = document.getElementById('subStatus');
     if(subscription.lastPaid){
-      var next = new Date(subscription.lastPaid);
-      next.setDate(next.getDate() + 30);
+      var next = new Date(subscription.lastPaid); next.setDate(next.getDate() + 30);
       statusEl.textContent = 'Active until ' + next.toDateString();
-    } else {
-      statusEl.textContent = 'No payment recorded yet';
-    }
+    } else { statusEl.textContent = 'No payment recorded yet'; }
     var histEl = document.getElementById('subHistory');
-    if(!subscription.history || subscription.history.length === 0){
-      histEl.innerHTML = '<p class="field-hint">No payments recorded yet.</p>';
-    } else {
-      histEl.innerHTML = subscription.history.map(function(h){
-        return '<div class="history-item"><span>' + esc(h.reference) + '</span><span>' + esc(h.date) + '</span></div>';
-      }).join('');
-    }
+    histEl.innerHTML = (subscription.history && subscription.history.length) ? subscription.history.map(function(h){
+      return '<div class="history-item"><span>' + esc(h.reference) + '</span><span>' + esc(h.date) + '</span></div>';
+    }).join('') : '<p class="field-hint">No payments recorded yet.</p>';
   }
 
   async function printWaybill(tracking){
     try{
       var order = await api('/api/orders/' + encodeURIComponent(tracking));
-      var area = document.getElementById('printArea');
-      area.innerHTML = '<h2>Codex Waybill</h2><p>Tracking number: ' + esc(order.tracking) + '</p><p>Item: ' + esc(order.title) + '</p><p>Amount: Naira ' + Number(order.price).toLocaleString() + '</p><p>Scratch code: ' + esc(order.code || 'n/a') + '</p><p>Buyer: ' + esc(order.buyer || 'Codex checkout') + '</p>';
+      document.getElementById('printArea').innerHTML = '<h2>Codex Waybill</h2><p>Tracking number: ' + esc(order.tracking) + '</p><p>Item: ' + esc(order.title) + '</p><p>Amount: ' + money(order.price) + '</p><p>Scratch code: ' + esc(order.code || 'n/a') + '</p><p>Buyer: ' + esc(order.buyer || 'Codex checkout') + '</p>';
       await api('/api/orders/' + encodeURIComponent(tracking) + '/dispatch', 'POST');
       window.print();
       await loadState();
-    }catch(e){ alert('Could not find that order.'); }
+    }catch(e){ toast('Could not find that order.', 'error'); }
   }
-
   async function sendWhatsapp(tracking){
     try{
       var order = await api('/api/orders/' + encodeURIComponent(tracking));
       var text = encodeURIComponent('Hello! Your order for "' + order.title + '" is on the way. Tracking number: ' + order.tracking + '. Scratch code: ' + (order.code || 'n/a'));
       var phone = (order.phone || '').replace(/[^0-9]/g, '');
       window.open('https://wa.me/' + phone + '?text=' + text, '_blank');
-    }catch(e){ alert('Could not find that order.'); }
+    }catch(e){ toast('Could not find that order.', 'error'); }
   }
 
   var adTimer = null;
@@ -722,10 +805,15 @@
     if(adTimer) clearInterval(adTimer);
     if(ads.length === 0){ adTextEl.textContent = 'No ads running right now.'; return; }
     var idx = 0;
-    function show(){ adTextEl.innerHTML = ads[idx].desc + ' <b>(Naira ' + ads[idx].rate + '/hr)</b>'; idx = (idx + 1) % ads.length; }
+    function show(){ adTextEl.innerHTML = ads[idx].desc + ' <b>(' + money(ads[idx].rate) + '/hr)</b>'; idx = (idx + 1) % ads.length; }
     show();
     adTimer = setInterval(show, 6000);
   }
+
+  window.addEventListener('scroll', function(){
+    document.getElementById('backTop').classList.toggle('show', window.scrollY > 400);
+  });
+  document.getElementById('backTop').addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
 
   loadState();
 </script>
