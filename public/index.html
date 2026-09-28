@@ -13,203 +13,207 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#050805; --surface:#0d140d; --surface2:#121b12; --line:#233324;
-    --green:#39ff8f; --green-soft:rgba(57,255,143,0.35); --green-glow:rgba(57,255,143,0.55);
-    --gold:#ffd54a; --gold-soft:rgba(255,213,74,0.35); --gold-glow:rgba(255,213,74,0.55);
-    --text:#eaf5ec; --muted:#8fa393; --danger:#ff7d9c;
-    --radius:14px;
+    --bg:#f6f7f9; --surface:#ffffff; --surface2:#f1f3f5; --line:#e3e6ea;
+    --text:#171a1f; --muted:#5b6470; --primary:#0f8a5f; --primary-dark:#0b6b48;
+    --accent:#b45309; --danger:#c0362c; --danger-bg:#fdecea; --success-bg:#eaf7f0;
+    --radius:10px;
     box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   }
   *{box-sizing:inherit;margin:0;padding:0;}
   html{scroll-padding-top:env(safe-area-inset-top,0px);}
   html,body{height:100%;}
-  body{
-    background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;
-    background-image:
-      radial-gradient(circle at 12% 10%, rgba(57,255,143,0.10), transparent 42%),
-      radial-gradient(circle at 88% 4%, rgba(255,213,74,0.10), transparent 46%);
-    overflow-x:hidden;
-  }
-  h1,h2,h3,.brand{font-family:'Space Grotesk',sans-serif;}
+  body{background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.brand{font-family:'Inter',sans-serif;}
   a{color:inherit;text-decoration:none;}
-  button{font-family:inherit;cursor:pointer;background:none;color:inherit;border:none;transition:transform .12s ease, background-color .15s ease, border-color .15s ease, box-shadow .2s ease;}
-  button:active{transform:scale(0.97);}
-  ::selection{background:var(--green-soft);}
+  button{font-family:inherit;cursor:pointer;background:none;color:inherit;border:none;transition:background-color .15s ease, border-color .15s ease, box-shadow .15s ease, opacity .15s ease;}
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
+  ::selection{background:#cdeee0;}
 
-  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;display:flex;align-items:center;justify-content:space-between;padding:16px clamp(20px,5vw,64px);background:rgba(5,8,5,0.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
-  .brand{font-size:19px;font-weight:600;display:flex;align-items:center;gap:9px;}
-  nav.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:100px;padding:4px;}
-  nav.tabs button{padding:8px 15px;border-radius:100px;font-size:13px;color:var(--muted);}
-  nav.tabs button.active{background:var(--green);color:#04170c;font-weight:600;box-shadow:0 0 16px var(--green-glow);}
-  .cart-btn{display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:8px;border:1px solid var(--line);font-size:13px;}
-  .cart-btn span.n{color:#04170c;background:var(--green);border-radius:5px;padding:1px 6px;font-weight:600;font-size:11px;}
+  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;display:flex;align-items:center;justify-content:space-between;padding:14px clamp(20px,5vw,64px);background:var(--surface);border-bottom:1px solid var(--line);}
+  .brand{font-size:19px;font-weight:700;display:flex;align-items:center;gap:8px;color:var(--text);}
+  nav.tabs{display:flex;gap:2px;background:var(--surface2);border-radius:8px;padding:3px;}
+  nav.tabs button{padding:8px 15px;border-radius:6px;font-size:13px;color:var(--muted);font-weight:500;}
+  nav.tabs button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,0.08);}
+  .cart-btn{display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:7px;border:1px solid var(--line);font-size:13px;font-weight:500;}
+  .cart-btn span.n{color:#fff;background:var(--primary);border-radius:5px;padding:1px 7px;font-weight:600;font-size:11px;}
   @media (max-width:640px){ .brand .txt{display:none;} nav.tabs button{padding:8px 9px;font-size:11.5px;} }
 
-  .view{display:none;animation:fadein .25s ease;}
+  .view{display:none;}
   .view.active{display:block;}
-  @keyframes fadein{from{opacity:0;}to{opacity:1;}}
-  @media (prefers-reduced-motion:reduce){ .view{animation:none;} }
 
-  .adbar{max-width:1280px;margin:14px auto 0;padding:0 clamp(20px,5vw,64px);}
-  .adbar-inner{background:linear-gradient(90deg, rgba(57,255,143,0.14), rgba(255,213,74,0.12));border:1px solid var(--line);border-radius:12px;padding:12px 18px;display:flex;align-items:center;gap:12px;font-size:13px;box-shadow:0 0 22px rgba(57,255,143,0.08);}
-  .adbar-inner .tag{background:var(--gold);color:#2a1f00;font-weight:700;font-size:11px;padding:2px 8px;border-radius:100px;flex-shrink:0;text-shadow:none;}
-  .adbar-inner .txt b{color:var(--green);}
+  .adbar{max-width:1280px;margin:16px auto 0;padding:0 clamp(20px,5vw,64px);}
+  .adbar-inner{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:12px 18px;display:flex;align-items:center;gap:12px;font-size:13px;}
+  .adbar-inner .tag{background:var(--accent);color:#fff;font-weight:700;font-size:10px;padding:2px 8px;border-radius:4px;flex-shrink:0;letter-spacing:0.4px;}
+  .adbar-inner .txt b{color:var(--primary);}
+  .adbar-inner a.watch{margin-left:auto;color:var(--primary);font-size:12px;white-space:nowrap;font-weight:600;}
 
-  .hero{padding:clamp(36px,7vw,72px) clamp(20px,5vw,64px) 26px;display:grid;grid-template-columns:1.1fr 0.9fr;gap:40px;align-items:center;max-width:1280px;margin:0 auto;}
-  @media (max-width:900px){ .hero{grid-template-columns:1fr;} }
-  .kicker{color:var(--green);font-size:13px;font-weight:500;margin-bottom:16px;text-shadow:0 0 10px var(--green-soft);}
-  .hero h1{font-size:clamp(34px,5.5vw,58px);line-height:1.04;font-weight:600;letter-spacing:-0.8px;}
-  .hero h1 em{font-style:normal;color:transparent;-webkit-background-clip:text;background-clip:text;background-image:linear-gradient(100deg,var(--green),var(--gold));filter:drop-shadow(0 0 18px rgba(57,255,143,0.35));}
-  .hero p{margin-top:18px;color:var(--muted);font-size:16px;max-width:46ch;line-height:1.65;}
-  .hero-cta{margin-top:28px;display:flex;gap:14px;flex-wrap:wrap;}
-  .btn-primary{background:var(--green);color:#04170c;padding:13px 26px;border-radius:9px;font-weight:600;font-size:15px;box-shadow:0 0 26px var(--green-glow);}
-  .btn-primary:hover{box-shadow:0 0 38px var(--green-glow);}
-  .btn-gold{background:var(--gold);color:#2a1f00;padding:13px 26px;border-radius:9px;font-weight:600;font-size:15px;box-shadow:0 0 26px var(--gold-glow);}
-  .btn-ghost{border:1px solid var(--line);padding:13px 26px;border-radius:9px;font-weight:500;font-size:15px;}
-  .btn-ghost:hover{border-color:var(--green);color:var(--green);}
-  .btn-primary:disabled{opacity:0.5;cursor:not-allowed;box-shadow:none;}
-  .btn-small{border:1px solid var(--line);padding:8px 14px;border-radius:7px;font-size:12px;color:var(--green);}
-  .btn-small:hover{background:rgba(57,255,143,0.1);}
-  .btn-small.warn{color:var(--danger);}
-  .btn-small.gold{color:var(--gold);border-color:rgba(255,213,74,0.4);}
+  .hero{padding:clamp(40px,7vw,72px) clamp(20px,5vw,64px) 30px;max-width:1280px;margin:0 auto;text-align:center;}
+  .kicker{color:var(--primary);font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase;}
+  .hero h1{font-size:clamp(30px,5vw,48px);line-height:1.15;font-weight:700;letter-spacing:-0.5px;max-width:16ch;margin:0 auto;}
+  .hero h1 em{font-style:normal;color:var(--primary);}
+  .hero p{margin:18px auto 0;color:var(--muted);font-size:16px;max-width:52ch;line-height:1.6;}
+  .hero-cta{margin-top:26px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .btn-primary{background:var(--primary);color:#fff;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-gold{background:var(--accent);color:#fff;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;}
+  .btn-gold:hover{opacity:0.9;}
+  .btn-ghost{border:1px solid var(--line);background:var(--surface);padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;}
+  .btn-ghost:hover{border-color:var(--primary);color:var(--primary);}
+  .btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+  .btn-small{border:1px solid var(--line);background:var(--surface);padding:7px 13px;border-radius:6px;font-size:12px;color:var(--text);font-weight:500;}
+  .btn-small:hover{border-color:var(--primary);color:var(--primary);}
+  .btn-small.warn{color:var(--danger);border-color:#f3c9c5;}
+  .btn-small.gold{color:var(--accent);border-color:#eccfa9;}
 
-  .orb-wrap{position:relative;height:300px;display:flex;align-items:center;justify-content:center;}
-  .orb{width:250px;height:250px;border-radius:50%;background:radial-gradient(circle at 32% 28%, rgba(255,213,74,0.5), rgba(57,255,143,0.18) 55%, transparent 75%);filter:blur(2px);}
-  .ring{position:absolute;border:1px solid var(--green-soft);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);}
-  .ring.r1{width:310px;height:310px;animation:spin 22s linear infinite;}
-  .ring.r2{width:380px;height:380px;border-color:var(--gold-soft);animation:spin 34s linear infinite reverse;}
-  .ring span{position:absolute;width:8px;height:8px;background:var(--gold);border-radius:50%;top:-4px;left:50%;box-shadow:0 0 12px var(--gold);}
-  @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
-  @media (prefers-reduced-motion:reduce){ .ring{animation:none;} }
+  .stats-row{max-width:900px;margin:34px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .stats-row .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;text-align:center;}
+  .stats-row .stat b{display:block;font-size:22px;color:var(--primary);}
+  .stats-row .stat span{font-size:12px;color:var(--muted);}
+  @media(max-width:600px){ .stats-row{grid-template-columns:1fr;} }
 
-  .toolbar{max-width:1280px;margin:0 auto;padding:0 clamp(20px,5vw,64px) 16px;display:flex;gap:12px;flex-wrap:wrap;}
-  .toolbar input[type=text], .toolbar select{background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px 14px;color:var(--text);font-size:14px;}
-  .toolbar input[type=text]{flex:1;min-width:180px;}
-  .toolbar input:focus, .toolbar select:focus{outline:2px solid var(--green);outline-offset:1px;}
+  .toolbar{max-width:1280px;margin:28px auto 0;padding:0 clamp(20px,5vw,64px) 12px;display:flex;gap:10px;flex-wrap:wrap;}
+  .toolbar input[type=text], .toolbar input[type=number], .toolbar select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;}
+  .toolbar input[type=text]{flex:1;min-width:200px;}
+  .toolbar .price-range{display:flex;align-items:center;gap:6px;}
+  .toolbar .price-range input{width:90px;}
 
-  .cats{display:flex;gap:10px;overflow-x:auto;padding:0 clamp(20px,5vw,64px) 26px;max-width:1280px;margin:0 auto;}
+  .cats{display:flex;gap:8px;overflow-x:auto;padding:0 clamp(20px,5vw,64px) 22px;max-width:1280px;margin:0 auto;}
   .cats::-webkit-scrollbar{display:none;}
-  .chip{white-space:nowrap;padding:9px 18px;border-radius:100px;border:1px solid var(--line);font-size:13px;color:var(--muted);flex-shrink:0;}
-  .chip.active{border-color:var(--green);color:var(--green);background:rgba(57,255,143,0.08);box-shadow:0 0 14px rgba(57,255,143,0.15);}
+  .chip{white-space:nowrap;padding:8px 16px;border-radius:100px;border:1px solid var(--line);background:var(--surface);font-size:13px;color:var(--muted);flex-shrink:0;font-weight:500;}
+  .chip.active{border-color:var(--primary);color:#fff;background:var(--primary);}
 
   section.shelf{max-width:1280px;margin:0 auto;padding:10px clamp(20px,5vw,64px) 46px;}
-  .shelf-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px;}
-  .shelf-head h2{font-size:24px;font-weight:600;}
+  .shelf-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;}
+  .shelf-head h2{font-size:21px;font-weight:700;}
   .shelf-head span{font-size:13px;color:var(--muted);}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px;}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;transition:border-color .2s, transform .2s, box-shadow .2s;cursor:pointer;}
-  .card:hover{border-color:var(--green);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.45), 0 0 24px rgba(57,255,143,0.12);}
-  .cover{height:170px;position:relative;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14px;text-align:center;padding:14px;color:rgba(255,255,255,0.94);}
-  .cover::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.4));}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;transition:box-shadow .15s ease, border-color .15s ease;cursor:pointer;}
+  .card:hover{border-color:#d3d8de;box-shadow:0 6px 18px rgba(15,20,30,0.08);}
+  .cover{height:170px;position:relative;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;text-align:center;padding:14px;color:#fff;overflow:hidden;}
+  .cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .cover::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,0.32));}
   .cover span{position:relative;z-index:1;}
   .badge-row{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;z-index:2;}
-  .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px;}
-  .badge.oos{background:#3a1414;color:var(--danger);}
-  .badge.new{background:var(--green);color:#04170c;}
-  .badge.best{background:var(--gold);color:#2a1f00;}
-  .meta{padding:14px 16px 16px;}
-  .meta .author{font-size:12px;color:var(--muted);margin-bottom:4px;}
+  .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;}
+  .badge.oos{background:var(--danger-bg);color:var(--danger);}
+  .badge.low{background:#fef3e2;color:var(--accent);}
+  .badge.new{background:var(--success-bg);color:var(--primary-dark);}
+  .badge.best{background:#171a1f;color:#fff;}
+  .meta{padding:12px 14px 14px;}
+  .meta .author{font-size:12px;color:var(--muted);margin-bottom:3px;}
   .meta .title{font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.3;}
-  .stars{font-size:11px;color:var(--gold);margin-bottom:10px;}
+  .stars{font-size:12px;color:var(--accent);margin-bottom:8px;}
   .stars .count{color:var(--muted);}
   .row{display:flex;justify-content:space-between;align-items:center;}
-  .price{color:var(--gold);font-weight:600;font-size:15px;text-shadow:0 0 10px var(--gold-soft);}
-  .add{border:1px solid var(--line);border-radius:7px;padding:6px 12px;font-size:12px;color:var(--green);}
-  .add:hover{background:rgba(57,255,143,0.1);}
-  .add:disabled{color:var(--muted);cursor:not-allowed;}
+  .price{color:var(--accent);font-weight:700;font-size:15px;}
+  .add{border:1px solid var(--primary);background:var(--primary);color:#fff;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:600;}
+  .add:hover{background:var(--primary-dark);}
+  .add:disabled{background:var(--surface2);border-color:var(--line);color:var(--muted);cursor:not-allowed;}
 
-  .trust{max-width:1280px;margin:0 auto;padding:10px clamp(20px,5vw,64px) 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .trust{max-width:1280px;margin:0 auto;padding:10px clamp(20px,5vw,64px) 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
   @media (max-width:760px){ .trust{grid-template-columns:1fr;} }
   .trust .item{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;}
-  .trust .item h3{font-size:14px;margin-bottom:6px;color:var(--green);}
+  .trust .item h3{font-size:14px;margin-bottom:6px;color:var(--text);}
   .trust .item p{font-size:13px;color:var(--muted);line-height:1.5;}
 
   .faq{max-width:1280px;margin:0 auto;padding:10px clamp(20px,5vw,64px) 60px;}
-  .faq h2{font-size:22px;margin-bottom:16px;}
-  .faq details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px;}
+  .faq h2{font-size:20px;margin-bottom:16px;font-weight:700;}
+  .faq details{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin-bottom:8px;}
   .faq summary{cursor:pointer;font-weight:600;font-size:14px;}
   .faq p{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6;}
 
   .panel{max-width:680px;margin:0 auto;padding:clamp(30px,6vw,50px) 0 60px;}
-  .panel-inner{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:clamp(22px,5vw,34px);margin:0 20px 20px;}
-  @media(min-width:720px){ .panel-inner{margin:0 0 20px;} }
-  .panel h2{font-size:22px;margin-bottom:6px;}
-  .panel h3.sub-head{font-size:16px;margin-bottom:4px;color:var(--green);}
-  .panel .sub{color:var(--muted);font-size:14px;margin-bottom:26px;}
-  label{display:block;font-size:13px;color:var(--muted);margin:16px 0 6px;}
+  .panel-inner{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:clamp(20px,5vw,30px);margin:0 20px 18px;}
+  @media(min-width:720px){ .panel-inner{margin:0 0 18px;} }
+  .panel h2{font-size:20px;margin-bottom:6px;font-weight:700;}
+  .panel h3.sub-head{font-size:15px;margin-bottom:4px;color:var(--text);font-weight:700;}
+  .panel .sub{color:var(--muted);font-size:14px;margin-bottom:22px;}
+  label{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px;font-weight:500;}
   label:first-of-type{margin-top:0;}
   input[type=text], input[type=number], input[type=tel], input[type=email], textarea, select{
-    width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:11px 13px;color:var(--text);font-size:14px;font-family:inherit;
+    width:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;font-family:inherit;
   }
-  input:focus, textarea:focus, select:focus{outline:2px solid var(--green);outline-offset:1px;}
+  input[type=file]{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--muted);font-size:13px;}
   textarea{resize:vertical;min-height:80px;}
-  .check-row{display:flex;align-items:center;gap:10px;margin-top:16px;}
+  .check-row{display:flex;align-items:center;gap:10px;margin-top:14px;}
   .check-row input{width:auto;}
   .field-hint{font-size:12px;color:var(--muted);margin-top:6px;}
-  .terms-box{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px;}
-  .divider{border-top:1px solid var(--line);margin:26px 0;}
-  .account-box{background:var(--surface2);border:1px dashed var(--gold-soft);border-radius:12px;padding:16px 18px;margin-top:8px;}
-  .account-box .row{padding:4px 0;font-size:14px;}
+  .upload-status{font-size:12px;color:var(--primary);margin-top:6px;font-weight:500;}
+  .terms-box{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px;}
+  .divider{border-top:1px solid var(--line);margin:22px 0;}
+  .account-box{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-top:8px;}
+  .account-box .row{padding:4px 0;font-size:13px;}
   .account-box .row span:first-child{color:var(--muted);}
-  .account-box .row span:last-child{font-weight:600;color:var(--gold);text-align:right;}
-  .paid-badge{display:inline-block;background:var(--green);color:#04170c;font-weight:700;font-size:12px;padding:3px 10px;border-radius:100px;margin-bottom:10px;box-shadow:0 0 14px var(--green-glow);}
-  .timeline{margin-top:26px;}
-  .tl-item{display:flex;gap:14px;padding-bottom:22px;position:relative;}
+  .account-box .row span:last-child{font-weight:600;color:var(--text);text-align:right;}
+  .paid-badge{display:inline-block;background:var(--primary);color:#fff;font-weight:700;font-size:12px;padding:3px 10px;border-radius:4px;margin-bottom:10px;}
+  .badge-pill{display:inline-block;font-weight:700;font-size:12px;padding:3px 10px;border-radius:4px;margin-bottom:10px;}
+  .badge-pill.cancel{background:var(--danger-bg);color:var(--danger);}
+  .badge-pill.refund{background:#fef3e2;color:var(--accent);}
+  .timeline{margin-top:22px;}
+  .tl-item{display:flex;gap:14px;padding-bottom:20px;position:relative;}
   .tl-item:not(:last-child)::before{content:'';position:absolute;left:6px;top:16px;bottom:0;width:1px;background:var(--line);}
   .tl-dot{width:13px;height:13px;border-radius:50%;background:var(--surface2);border:2px solid var(--line);flex-shrink:0;margin-top:2px;}
-  .tl-item.done .tl-dot{background:var(--green);border-color:var(--green);box-shadow:0 0 10px var(--green-glow);}
-  .tl-item h4{font-size:14px;}
+  .tl-item.done .tl-dot{background:var(--primary);border-color:var(--primary);}
+  .tl-item h4{font-size:14px;font-weight:600;}
   .tl-item p{font-size:12px;color:var(--muted);margin-top:2px;}
 
-  .order-card{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:12px;}
+  .order-card{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-top:10px;}
   .order-card .row{margin-bottom:4px;}
-  .order-card .tag-ext{background:var(--gold);color:#2a1f00;font-size:10px;padding:2px 7px;border-radius:100px;margin-left:6px;}
+  .order-card .tag-ext{background:var(--text);color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;margin-left:6px;}
   .order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-  .status-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;}
-  .status-pill.pending{background:rgba(255,213,74,0.15);color:var(--gold);}
-  .status-pill.confirmed{background:rgba(57,255,143,0.15);color:var(--green);}
+  .status-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;}
+  .status-pill.pending{background:#fef3e2;color:var(--accent);}
+  .status-pill.confirmed{background:var(--success-bg);color:var(--primary-dark);}
   .history-item{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line);}
   .history-item:last-child{border-bottom:none;}
   .history-item span:last-child{color:var(--muted);}
+  .dash{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+  .dash .box{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px;text-align:center;}
+  .dash .box b{display:block;font-size:17px;color:var(--primary-dark);}
+  .dash .box span{font-size:11px;color:var(--muted);}
+  @media(max-width:500px){ .dash{grid-template-columns:1fr 1fr;} }
 
   .qty-row{display:flex;align-items:center;gap:12px;margin-top:8px;}
-  .qty-row button{border:1px solid var(--line);width:32px;height:32px;border-radius:8px;font-size:16px;}
+  .qty-row button{border:1px solid var(--line);width:30px;height:30px;border-radius:6px;font-size:15px;background:var(--surface2);}
   .qty-row span{min-width:24px;text-align:center;font-weight:600;}
 
-  .overlay{position:fixed;inset:0;background:rgba(2,4,2,0.72);backdrop-filter:blur(4px);z-index:50;display:none;align-items:flex-end;justify-content:center;}
+  .overlay{position:fixed;inset:0;background:rgba(15,20,30,0.45);z-index:50;display:none;align-items:flex-end;justify-content:center;}
   .overlay.show{display:flex;}
   @media(min-width:640px){ .overlay{align-items:center;} }
-  .modal{background:var(--surface);border:1px solid var(--line);border-radius:18px 18px 0 0;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;padding:26px 24px calc(26px + env(safe-area-inset-bottom,0px));}
-  @media(min-width:640px){ .modal{border-radius:18px;} }
-  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
-  .modal-head h3{font-size:18px;}
-  .close-x{font-size:14px;color:var(--muted);border:1px solid var(--line);border-radius:7px;padding:6px 10px;}
+  .modal{background:var(--surface);border:1px solid var(--line);border-radius:14px 14px 0 0;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;padding:24px 22px calc(24px + env(safe-area-inset-bottom,0px));box-shadow:0 20px 60px rgba(0,0,0,0.25);}
+  @media(min-width:640px){ .modal{border-radius:14px;} }
+  .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .modal-head h3{font-size:17px;font-weight:700;}
+  .close-x{font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:6px 10px;}
   .review{border-bottom:1px solid var(--line);padding:10px 0;}
   .review:last-child{border-bottom:none;}
   .review .stars{margin-bottom:2px;}
   .review p{font-size:13px;color:var(--muted);}
+  .related{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+  .related .rcard{background:var(--surface2);border:1px solid var(--line);border-radius:7px;padding:8px;font-size:11px;cursor:pointer;font-weight:500;}
+  .related .rcard:hover{border-color:var(--primary);}
+  .related .rcard .rcover{height:50px;border-radius:5px;margin-bottom:6px;}
 
   #printArea{display:none;}
   @media print{ body *{visibility:hidden;} #printArea, #printArea *{visibility:visible;} #printArea{display:block;position:absolute;top:0;left:0;width:100%;padding:40px;color:#000;background:#fff;} }
 
   #toasts{position:fixed;bottom:20px;right:20px;z-index:80;display:flex;flex-direction:column;gap:10px;max-width:320px;}
-  .toast{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:slidein .2s ease;}
-  .toast.success{border-color:var(--green);color:var(--green);}
-  .toast.error{border-color:var(--danger);color:var(--danger);}
-  @keyframes slidein{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  .toast{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--muted);border-radius:8px;padding:12px 16px;font-size:13px;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,0.12);}
+  .toast.success{border-left-color:var(--primary);}
+  .toast.error{border-left-color:var(--danger);}
 
-  #backTop{position:fixed;bottom:20px;left:20px;z-index:40;background:var(--surface);border:1px solid var(--green);border-radius:50%;width:42px;height:42px;color:var(--green);display:none;box-shadow:0 0 16px var(--green-glow);}
+  #backTop{position:fixed;bottom:20px;left:20px;z-index:40;background:var(--surface);border:1px solid var(--line);border-radius:50%;width:40px;height:40px;color:var(--text);display:none;box-shadow:0 4px 14px rgba(0,0,0,0.15);}
   #backTop.show{display:block;}
 
-  .skeleton{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);height:260px;animation:pulse 1.4s ease infinite;}
-  @keyframes pulse{0%,100%{opacity:0.6;}50%{opacity:1;}}
+  .skeleton{background:linear-gradient(90deg, var(--surface2) 25%, #e8eaed 37%, var(--surface2) 63%);background-size:400% 100%;border:1px solid var(--line);border-radius:var(--radius);height:260px;animation:pulse 1.4s ease infinite;}
+  @keyframes pulse{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
 
-  footer{border-top:1px solid var(--line);max-width:1280px;margin:0 auto;padding:36px clamp(20px,5vw,64px);display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:20px;color:var(--muted);font-size:13px;}
-  footer .fbrand{color:var(--text);font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:16px;margin-bottom:8px;}
-  footer .fcol h4{color:var(--text);font-size:12px;margin-bottom:10px;}
+  footer{border-top:1px solid var(--line);max-width:1280px;margin:0 auto;padding:34px clamp(20px,5vw,64px);display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:20px;color:var(--muted);font-size:13px;background:var(--surface);}
+  footer .fbrand{color:var(--text);font-weight:700;font-size:16px;margin-bottom:8px;}
+  footer .fcol h4{color:var(--text);font-size:12px;margin-bottom:10px;font-weight:700;}
   footer .fcol div{margin-bottom:6px;}
-  footer .fcol div:hover{color:var(--green);cursor:pointer;}
-  footer input{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;width:100%;margin-bottom:8px;}
+  footer .fcol div:hover{color:var(--primary);cursor:pointer;}
+  footer input{background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--text);font-size:12px;width:100%;margin-bottom:8px;}
   @media(max-width:800px){ footer{grid-template-columns:1fr 1fr;} }
 </style>
 </head>
@@ -234,27 +238,26 @@
 </header>
 
 <div class="view active" id="view-shop">
-  <div class="adbar"><div class="adbar-inner"><span class="tag">AD</span><span class="txt" id="adText">No ads running right now.</span></div></div>
+  <div class="adbar"><div class="adbar-inner"><span class="tag">AD</span><span class="txt" id="adText">No ads running right now.</span><a class="watch" id="adWatch" href="#" target="_blank" style="display:none;">Watch &rarr;</a></div></div>
 
   <section class="hero">
-    <div>
-      <div class="kicker">// A MARKETPLACE FOR BOOKS</div>
-      <h1>Every book,<br><em>one signal</em> away.</h1>
-      <p>Browse titles from independent sellers, pay each seller directly, and get a tracking number and scratch code the moment your order is confirmed. Readers never pay a subscription — only for what they buy.</p>
-      <div class="hero-cta">
-        <a class="btn-primary" href="#shelf">Browse the shelf</a>
-        <button class="btn-ghost" data-nav="sell">List your books</button>
-      </div>
+    <div class="kicker">A MARKETPLACE FOR BOOKS</div>
+    <h1>Buy books directly<br>from <em>independent sellers</em>.</h1>
+    <p>Browse titles from independent sellers, pay each seller directly, and get a tracking number and scratch code the moment your order is confirmed. Readers never pay a subscription — only for what they buy.</p>
+    <div class="hero-cta">
+      <a class="btn-primary" href="#shelf">Browse the shelf</a>
+      <button class="btn-ghost" data-nav="sell">List your books</button>
     </div>
-    <div class="orb-wrap">
-      <div class="orb"></div>
-      <div class="ring r1"><span></span></div>
-      <div class="ring r2"><span style="background:var(--green);box-shadow:0 0 10px var(--green);"></span></div>
+    <div class="stats-row">
+      <div class="stat"><b id="statBooks">-</b><span>Titles listed</span></div>
+      <div class="stat"><b id="statSellers">-</b><span>Independent sellers</span></div>
+      <div class="stat"><b id="statOrders">-</b><span>Orders fulfilled</span></div>
     </div>
   </section>
 
   <div class="toolbar">
     <input type="text" id="searchBox" placeholder="Search by title or author...">
+    <div class="price-range"><span class="field-hint" style="margin:0;">Naira</span><input type="number" id="minPrice" placeholder="Min"><span class="field-hint" style="margin:0;">-</span><input type="number" id="maxPrice" placeholder="Max"></div>
     <select id="sortBox">
       <option value="default">Sort: Featured</option>
       <option value="price-asc">Price: Low to High</option>
@@ -281,7 +284,7 @@
     <h2>Frequently asked</h2>
     <details><summary>Who do I pay when I buy a book?</summary><p>You pay the seller directly, using the account details shown at checkout. Codex never touches that money.</p></details>
     <details><summary>What's a scratch code for?</summary><p>It's a second reference, alongside your tracking number, that a seller can ask for to confirm your order is genuine.</p></details>
-    <details><summary>Can I return a book?</summary><p>Raise it with the seller directly from the Track tab's complaint form — they handle returns for their own listings.</p></details>
+    <details><summary>Can I cancel an order?</summary><p>Yes, within 15 minutes of confirming payment and before it's dispatched — use the Track tab.</p></details>
     <details><summary>How do ads work?</summary><p>Sellers pay Codex directly to promote a listing. Ads only go live after Codex confirms the payment.</p></details>
   </section>
 </div>
@@ -298,7 +301,7 @@
       <select id="s-category"><option>Fiction</option><option>Sci-Fi & Fantasy</option><option>Business</option><option>Software & Hardware</option><option>Self-help</option></select>
       <label>Price (Naira) *</label><input type="number" id="s-price" placeholder="5000">
       <label>Stock quantity</label><input type="number" id="s-qty" placeholder="10">
-      <label>Upload cover photo</label><input type="text" id="s-cover" readonly placeholder="Tap to choose a photo from your phone storage" data-fill="cover_photo.jpg attached">
+      <label>Cover photo</label><input type="file" id="s-cover" accept="image/*"><div class="upload-status" id="s-cover-status"></div>
       <div class="divider"></div>
       <h3 class="sub-head">Your payout details</h3>
       <p class="field-hint" style="margin-bottom:6px;">Your own account — shown to buyers of this book so they can pay you directly.</p>
@@ -315,7 +318,7 @@
       <p class="field-hint" style="margin-top:-2px;margin-bottom:16px;">Ads are paid to Codex, not to the seller. Your ad goes live once payment is confirmed.</p>
       <label>Which listing?</label><select id="ad-book"></select>
       <label>Ad description *</label><textarea id="s-ad-desc" placeholder="What should this ad say?"></textarea>
-      <label>Upload ad video *</label><input type="text" id="s-ad-video" readonly placeholder="Tap to choose a video from your phone storage" data-fill="ad_clip.mp4 attached - ready to go live">
+      <label>Ad video *</label><input type="file" id="s-ad-video" accept="video/*"><div class="upload-status" id="s-ad-video-status"></div>
       <label>Rate per hour (Naira, max 7,000) *</label><input type="number" id="s-ad-rate" placeholder="3500" max="7000">
       <div class="divider"></div>
       <p class="field-hint" style="margin-bottom:8px;">Pay Codex using the account below, then upload your proof of payment.</p>
@@ -324,7 +327,7 @@
         <div class="row"><span>Account number</span><span>8085743879</span></div>
         <div class="row"><span>Account type</span><span>Opay</span></div>
       </div>
-      <label>Upload proof of payment *</label><input type="text" id="ad-proof" readonly placeholder="Tap to choose a screenshot" data-fill="ad_payment_screenshot.jpg attached">
+      <label>Proof of payment *</label><input type="file" id="ad-proof" accept="image/*"><div class="upload-status" id="ad-proof-status"></div>
       <button class="btn-gold" style="width:100%;margin-top:20px;" id="submitAdBtn">Submit ad for confirmation</button>
     </div>
 
@@ -339,8 +342,16 @@
     </div>
 
     <div class="panel-inner">
-      <h3 class="sub-head">Manage listings and orders</h3>
-      <p class="field-hint" style="margin-top:-2px;margin-bottom:8px;">Mark items out of stock, print a waybill, or send a tracking number over WhatsApp. Confirming an ad payment needs the admin key.</p>
+      <h3 class="sub-head">Filter to your listings</h3>
+      <p class="field-hint" style="margin-top:-2px;margin-bottom:10px;">Type the phone number you listed with — this just filters what you see below, it isn't a login.</p>
+      <input type="tel" id="seller-filter" placeholder="e.g. 08031234567">
+    </div>
+
+    <div class="panel-inner">
+      <h3 class="sub-head">Sales overview</h3>
+      <div class="dash" id="salesDash"></div>
+      <h3 class="sub-head" style="margin-top:4px;">Manage listings and orders</h3>
+      <p class="field-hint" style="margin-top:-2px;margin-bottom:8px;">Mark items out of stock, print a waybill, refund an order, or send a tracking number over WhatsApp. Confirming an ad payment needs the admin key.</p>
       <div id="manageList"></div>
     </div>
   </div>
@@ -350,7 +361,7 @@
   <div class="panel">
     <div class="panel-inner">
       <h2>Platform subscription</h2>
-      <p class="sub">This section is for the company that licenses and operates Codex. It has nothing to do with what readers or sellers pay. Admin key required to confirm payment.</p>
+      <p class="sub">This section is for the company that licenses and operates Codex. It has nothing to do with what readers or sellers pay.</p>
       <div class="account-box" style="margin-bottom:18px;">
         <div class="row"><span>Monthly fee</span><span>Naira 500,000</span></div>
         <div class="row"><span>Status</span><span id="subStatus">No payment recorded yet</span></div>
@@ -360,8 +371,14 @@
         <div class="row"><span>Account number</span><span>8085743879</span></div>
         <div class="row"><span>Account type</span><span>Opay</span></div>
       </div>
-      <label>Upload proof of payment *</label><input type="text" id="sub-proof" readonly placeholder="Tap to choose a screenshot" data-fill="subscription_payment_screenshot.jpg attached">
-      <button class="btn-gold" style="width:100%;margin-top:20px;" id="paySubBtn">I've paid this month's subscription</button>
+      <div id="pendingSub" style="display:none;">
+        <div class="terms-box" style="margin-top:14px;">A payment has been submitted and is awaiting confirmation.</div>
+        <button class="btn-gold" style="width:100%;margin-top:14px;" id="confirmSubBtn">Confirm payment received (admin)</button>
+      </div>
+      <div id="submitSubSection">
+        <label>Proof of payment *</label><input type="file" id="sub-proof" accept="image/*"><div class="upload-status" id="sub-proof-status"></div>
+        <button class="btn-gold" style="width:100%;margin-top:20px;" id="paySubBtn">I've paid — submit for confirmation</button>
+      </div>
     </div>
     <div class="panel-inner">
       <h3 class="sub-head">Payment history</h3>
@@ -378,14 +395,28 @@
       <label>Tracking number</label><input type="text" id="t-num" placeholder="e.g. CDX-48213">
       <button class="btn-primary" style="width:100%;margin-top:18px;" id="trackBtn">Track order</button>
       <div id="timeline" class="timeline" style="display:none;">
-        <span class="paid-badge">PAID SUCCESSFULLY</span>
+        <span class="paid-badge" id="track-paid-badge">PAID SUCCESSFULLY</span>
+        <span class="badge-pill cancel" id="track-cancelled-badge" style="display:none;">CANCELLED</span>
+        <span class="badge-pill refund" id="track-refunded-badge" style="display:none;">REFUNDED</span>
         <p class="field-hint" id="track-book" style="margin-bottom:14px;"></p>
         <p class="field-hint" id="track-code" style="margin-bottom:14px;"></p>
         <div class="tl-item done"><div class="tl-dot"></div><div><h4>Payment confirmed</h4><p>Seller notified. A thank-you card is packed with your order.</p></div></div>
         <div class="tl-item done"><div class="tl-dot"></div><div><h4>Waybill attached</h4><p>Softcopy waybill generated and linked to your order.</p></div></div>
         <div class="tl-item" id="tl-dispatch"><div class="tl-dot"></div><div><h4>Dispatched</h4><p>Seller marks this once your item ships.</p></div></div>
         <div class="tl-item"><div class="tl-dot"></div><div><h4>Delivered</h4><p>Awaiting confirmation.</p></div></div>
+        <div class="order-actions">
+          <button class="btn-small warn" id="cancelOrderBtn" style="display:none;">Cancel this order</button>
+          <button class="btn-small" id="receiptBtn">Download receipt</button>
+        </div>
       </div>
+
+      <div class="divider"></div>
+      <h3 style="font-size:15px;margin-bottom:4px;">Find your orders</h3>
+      <p class="field-hint" style="margin-bottom:8px;">Look up every order tied to a phone number or email you gave at checkout.</p>
+      <input type="text" id="myOrdersContact" placeholder="Phone or email used at checkout">
+      <button class="btn-ghost" style="width:100%;margin-top:10px;" id="myOrdersBtn">Find my orders</button>
+      <div id="myOrdersList"></div>
+
       <div class="divider"></div>
       <h3 style="font-size:15px;margin-bottom:4px;">Have a complaint about a product?</h3>
       <label>Order / tracking number</label><input type="text" id="c-num" placeholder="CDX-48213">
@@ -412,10 +443,13 @@
     <label>Have a coupon code?</label>
     <div style="display:flex;gap:8px;"><input type="text" id="couponInput" placeholder="e.g. WELCOME10"><button class="btn-small" id="applyCouponBtn">Apply</button></div>
     <div class="divider"></div>
+    <label>Your phone or email (so you can look up this order later)</label>
+    <input type="text" id="buyerContact" placeholder="080... or you@email.com">
+    <div class="divider"></div>
     <p class="field-hint" style="margin-bottom:8px;">Pay this seller directly using their details below, then confirm your payment.</p>
     <div class="account-box" id="modalAccountBox"></div>
-    <div class="terms-box">Cash-on-delivery terms: full payment is confirmed before dispatch. If an item goes out of stock after ordering, you'll be notified within 2 hours and refunded.</div>
-    <label>Upload proof of payment</label><input type="text" readonly placeholder="Tap to choose a screenshot" data-fill="payment_screenshot.jpg attached">
+    <div class="terms-box">Cash-on-delivery terms: full payment is confirmed before dispatch. You can cancel within 15 minutes if you change your mind. If an item goes out of stock after ordering, you'll be notified within 2 hours and refunded.</div>
+    <label>Proof of payment</label><input type="file" id="checkout-proof" accept="image/*"><div class="upload-status" id="checkout-proof-status"></div>
     <div class="check-row"><input type="checkbox" id="cod-terms"><label style="margin:0;">I agree to these terms</label></div>
     <button class="btn-primary" style="width:100%;margin-top:20px;" id="confirmBtn">I've sent payment</button>
   </div>
@@ -427,7 +461,13 @@
     <p class="field-hint" id="detailAuthor" style="margin-bottom:10px;"></p>
     <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:14px;" id="detailDesc"></p>
     <p class="price" id="detailPrice" style="font-size:18px;margin-bottom:16px;"></p>
-    <button class="btn-primary" style="width:100%;" id="detailBuyBtn">Buy this book</button>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-primary" style="flex:1;" id="detailBuyBtn">Buy this book</button>
+      <button class="btn-ghost" id="shareBtn" title="Share">Share</button>
+    </div>
+    <div class="divider"></div>
+    <h3 class="sub-head">You might also like</h3>
+    <div class="related" id="relatedBooks"></div>
     <div class="divider"></div>
     <h3 class="sub-head">Reviews</h3>
     <div id="reviewList" style="margin-bottom:16px;"></div>
@@ -447,6 +487,7 @@
   function money(n){ return 'Naira ' + Number(n || 0).toLocaleString(); }
   function stars(n){ var s=''; for(var i=0;i<5;i++){ s += i < Math.round(n) ? '\u2605' : '\u2606'; } return s; }
   function avgStars(reviews){ if(!reviews || reviews.length===0) return 0; var sum=0; reviews.forEach(function(r){sum+=r.stars;}); return sum/reviews.length; }
+  function coverHtml(b){ return b.cover ? '<img src="' + esc(b.cover) + '" alt="' + esc(b.title) + ' cover">' : ''; }
 
   function toast(msg, type){
     var el = document.createElement('div');
@@ -459,16 +500,14 @@
   var ADMIN_KEY_STORAGE = 'codex_admin_key';
   function getAdminKey(promptIfMissing){
     var k = sessionStorage.getItem(ADMIN_KEY_STORAGE);
-    if(!k && promptIfMissing){
-      k = window.prompt('Enter the Codex admin key:');
-      if(k) sessionStorage.setItem(ADMIN_KEY_STORAGE, k);
-    }
+    if(!k && promptIfMissing){ k = window.prompt('Enter the Codex admin key:'); if(k) sessionStorage.setItem(ADMIN_KEY_STORAGE, k); }
     return k;
   }
 
-  var books = [], orders = [], subscription = {history:[]};
+  var books = [], orders = [], subscription = {history:[], pending:null};
   var activeBookId = null, activeQty = 1, activeCoupon = null;
   var currentCategory = 'All', currentSort = 'default', currentSearch = '';
+  var uploadedUrls = { cover:null, adVideo:null, adProof:null, checkoutProof:null, subProof:null };
 
   async function api(url, method, body, adminAction){
     var opts = { method: method || 'GET', headers: {} };
@@ -476,24 +515,37 @@
     if(adminAction){ var k = getAdminKey(true); if(k) opts.headers['x-admin-key'] = k; }
     var res = await fetch(url, opts);
     var data = await res.json().catch(function(){ return {}; });
-    if(!res.ok){
-      if(res.status === 401 && adminAction) sessionStorage.removeItem(ADMIN_KEY_STORAGE);
-      throw (data.error || 'Request failed');
-    }
+    if(!res.ok){ if(res.status === 401 && adminAction) sessionStorage.removeItem(ADMIN_KEY_STORAGE); throw (data.error || 'Request failed'); }
     return data;
   }
+
+  async function uploadFile(inputEl, statusEl, targetKey){
+    var file = inputEl.files[0];
+    if(!file) return;
+    statusEl.textContent = 'Uploading...';
+    var fd = new FormData();
+    fd.append('file', file);
+    try{
+      var res = await fetch('/api/upload', { method:'POST', body: fd });
+      var data = await res.json();
+      if(!res.ok) throw (data.error || 'Upload failed');
+      uploadedUrls[targetKey] = data.url;
+      statusEl.textContent = 'Uploaded: ' + file.name;
+    }catch(e){ statusEl.textContent = ''; toast('Upload failed: ' + e, 'error'); }
+  }
+  document.getElementById('s-cover').addEventListener('change', function(){ uploadFile(this, document.getElementById('s-cover-status'), 'cover'); });
+  document.getElementById('s-ad-video').addEventListener('change', function(){ uploadFile(this, document.getElementById('s-ad-video-status'), 'adVideo'); });
+  document.getElementById('ad-proof').addEventListener('change', function(){ uploadFile(this, document.getElementById('ad-proof-status'), 'adProof'); });
+  document.getElementById('checkout-proof').addEventListener('change', function(){ uploadFile(this, document.getElementById('checkout-proof-status'), 'checkoutProof'); });
+  document.getElementById('sub-proof').addEventListener('change', function(){ uploadFile(this, document.getElementById('sub-proof-status'), 'subProof'); });
 
   async function loadState(){
     try{
       var state = await api('/api/state');
       books = state.books; orders = state.orders; subscription = state.subscription;
-      renderCategoryChips();
-      renderBooks();
-      renderSubscription();
-      setupAdRotation();
+      renderCategoryChips(); renderBooks(); renderSubscription(); setupAdRotation();
     }catch(e){ toast('Could not load the shop: ' + e, 'error'); }
   }
-
   function findBook(id){ for(var i=0;i<books.length;i++){ if(books[i].id === id) return books[i]; } return null; }
 
   function renderCategoryChips(){
@@ -509,11 +561,17 @@
   });
   document.getElementById('searchBox').addEventListener('input', function(e){ currentSearch = e.target.value.toLowerCase(); renderBooks(); });
   document.getElementById('sortBox').addEventListener('change', function(e){ currentSort = e.target.value; renderBooks(); });
+  document.getElementById('minPrice').addEventListener('input', renderBooks);
+  document.getElementById('maxPrice').addEventListener('input', renderBooks);
 
   function visibleBooks(){
     var list = books.slice();
     if(currentCategory !== 'All') list = list.filter(function(b){ return b.category === currentCategory; });
     if(currentSearch) list = list.filter(function(b){ return (b.title + ' ' + b.author).toLowerCase().indexOf(currentSearch) !== -1; });
+    var min = parseFloat(document.getElementById('minPrice').value);
+    var max = parseFloat(document.getElementById('maxPrice').value);
+    if(!isNaN(min)) list = list.filter(function(b){ return b.price >= min; });
+    if(!isNaN(max)) list = list.filter(function(b){ return b.price <= max; });
     if(currentSort === 'price-asc') list.sort(function(a,b){ return a.price - b.price; });
     else if(currentSort === 'price-desc') list.sort(function(a,b){ return b.price - a.price; });
     else if(currentSort === 'new') list.sort(function(a,b){ return (b.createdAt||0) - (a.createdAt||0); });
@@ -521,18 +579,27 @@
     return list;
   }
 
+  function renderStats(){
+    var sellers = {};
+    books.forEach(function(b){ sellers[(b.phone||'') + b.accNum] = true; });
+    document.getElementById('statBooks').textContent = books.length;
+    document.getElementById('statSellers').textContent = Object.keys(sellers).length;
+    document.getElementById('statOrders').textContent = orders.filter(function(o){ return !o.cancelled; }).length;
+  }
+
   function renderBooks(){
+    renderStats();
     var list = visibleBooks();
     var grid = document.getElementById('bookGrid');
-    if(list.length === 0){
-      grid.innerHTML = '<p class="field-hint">No books match your search.</p>';
-    } else {
+    if(list.length === 0){ grid.innerHTML = '<p class="field-hint">No books match your search.</p>'; }
+    else {
       grid.innerHTML = list.map(function(b){
         var avg = avgStars(b.reviews);
+        var badges = (b.outOfStock ? '<span class="badge oos">OUT OF STOCK</span>' : (b.lowStock ? '<span class="badge low">LOW STOCK</span>' : (b.isNew ? '<span class="badge new">NEW</span>' : '')));
         return '<div class="card" data-open="' + b.id + '">' +
-          '<div class="cover" style="background:' + b.grad + '">' +
-            '<div class="badge-row"><span>' + (b.outOfStock ? '<span class="badge oos">OUT OF STOCK</span>' : (b.isNew ? '<span class="badge new">NEW</span>' : '')) + '</span><span>' + (b.isBestseller ? '<span class="badge best">BESTSELLER</span>' : '') + '</span></div>' +
-            '<span>' + esc(b.title) + '</span></div>' +
+          '<div class="cover" style="background:' + b.grad + '">' + coverHtml(b) +
+            '<div class="badge-row"><span>' + badges + '</span><span>' + (b.isBestseller ? '<span class="badge best">BESTSELLER</span>' : '') + '</span></div>' +
+            '<span>' + (b.cover ? '' : esc(b.title)) + '</span></div>' +
           '<div class="meta">' +
             '<div class="author">' + esc(b.author) + '</div>' +
             '<div class="title">' + esc(b.title) + '</div>' +
@@ -550,9 +617,23 @@
   }
 
   function renderManageList(){
+    var filterPhone = document.getElementById('seller-filter').value.replace(/\D/g, '');
+    var myBooks = filterPhone ? books.filter(function(b){ return (b.phone || '').replace(/\D/g,'') === filterPhone; }) : books;
+    var myOrders = filterPhone ? orders.filter(function(o){ return (o.sellerPhone || '').replace(/\D/g,'') === filterPhone; }) : orders;
+
+    var revenue = 0, count = 0, titleCounts = {};
+    myOrders.forEach(function(o){ if(!o.cancelled){ revenue += Number(o.price)||0; count++; titleCounts[o.title] = (titleCounts[o.title]||0)+1; } });
+    var top = 'None yet';
+    var topN = 0;
+    Object.keys(titleCounts).forEach(function(t){ if(titleCounts[t] > topN){ topN = titleCounts[t]; top = t; } });
+    document.getElementById('salesDash').innerHTML =
+      '<div class="box"><b>' + money(revenue) + '</b><span>Revenue</span></div>' +
+      '<div class="box"><b>' + count + '</b><span>Orders</span></div>' +
+      '<div class="box"><b style="font-size:12px;">' + esc(top) + '</b><span>Top seller</span></div>';
+
     var el = document.getElementById('manageList');
-    var html = '<h4 style="font-size:13px;color:var(--muted);margin-bottom:6px;">Your listings</h4>';
-    html += books.map(function(b){
+    var html = '<h4 style="font-size:13px;color:var(--muted);margin-bottom:6px;">' + (filterPhone ? 'Your listings' : 'All listings') + '</h4>';
+    html += myBooks.map(function(b){
       var adBadge = '';
       if(b.ad){ adBadge = ' <span class="status-pill ' + (b.ad.confirmed ? 'confirmed">Ad live' : 'pending">Ad pending payment') + '</span>'; }
       var adBtn = '';
@@ -561,18 +642,24 @@
         '<div class="field-hint">Stock: ' + b.quantity + '</div>' +
         '<div class="order-actions"><button class="btn-small ' + (b.outOfStock?'':'warn') + '" data-stock="' + b.id + '">' + (b.outOfStock ? 'Mark back in stock' : 'Mark out of stock') + '</button>' + adBtn + '</div></div>';
     }).join('');
-    html += '<h4 style="font-size:13px;color:var(--muted);margin:18px 0 6px;">Orders</h4>';
-    if(orders.length === 0){ html += '<p class="field-hint">No orders yet.</p>'; }
+
+    html += '<h4 style="font-size:13px;color:var(--muted);margin:18px 0 6px;">' + (filterPhone ? 'Your orders' : 'All orders') + '</h4>';
+    if(myOrders.length === 0){ html += '<p class="field-hint">No orders yet.</p>'; }
     else {
-      html += orders.slice().reverse().map(function(o){
+      html += myOrders.slice().reverse().map(function(o){
+        var flags = (o.cancelled ? ' <span class="tag-ext" style="background:#3a1414;color:var(--danger);">Cancelled</span>' : '') + (o.refunded ? ' <span class="tag-ext" style="background:#3a2a10;color:var(--gold);">Refunded</span>' : '');
         return '<div class="order-card">' +
-          '<div class="row"><span>' + esc(o.tracking) + (o.external ? '<span class="tag-ext">' + esc(o.platform) + '</span>' : '') + '</span><span class="price">' + money(o.price) + '</span></div>' +
+          '<div class="row"><span>' + esc(o.tracking) + (o.external ? '<span class="tag-ext">' + esc(o.platform) + '</span>' : '') + flags + '</span><span class="price">' + money(o.price) + '</span></div>' +
           '<div class="field-hint">' + esc(o.title) + (o.buyer ? ' - buyer: ' + esc(o.buyer) : '') + (o.qty ? ' - qty: ' + o.qty : '') + '</div>' +
-          '<div class="order-actions"><button class="btn-small" data-waybill="' + esc(o.tracking) + '">Print waybill</button><button class="btn-small" data-wa="' + esc(o.tracking) + '">Send via WhatsApp</button></div></div>';
+          '<div class="order-actions"><button class="btn-small" data-waybill="' + esc(o.tracking) + '">Print waybill</button>' +
+          '<button class="btn-small" data-wa="' + esc(o.tracking) + '">Send via WhatsApp</button>' +
+          (o.refunded ? '' : '<button class="btn-small gold" data-refund="' + esc(o.tracking) + '">Mark refunded</button>') +
+          '</div></div>';
       }).join('');
     }
     el.innerHTML = html;
   }
+  document.getElementById('seller-filter').addEventListener('input', renderManageList);
 
   document.getElementById('bookGrid').addEventListener('click', function(e){
     var openCard = e.target.closest('[data-open]');
@@ -586,16 +673,21 @@
     else if(b = t.closest('button[data-confirmad]')) confirmAd(parseInt(b.dataset.confirmad));
     else if(b = t.closest('button[data-waybill]')) printWaybill(b.dataset.waybill);
     else if(b = t.closest('button[data-wa]')) sendWhatsapp(b.dataset.wa);
+    else if(b = t.closest('button[data-refund]')) refundOrder(b.dataset.refund);
   });
   document.body.addEventListener('click', function(e){
-    var f = e.target.closest('input[data-fill]');
-    if(f) f.value = f.dataset.fill;
     var nav = e.target.closest('[data-nav]');
     if(nav) switchView(nav.dataset.nav);
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){
+      document.querySelectorAll('.overlay.show').forEach(function(o){ o.classList.remove('show'); });
+    }
   });
 
   async function toggleStock(id){ try{ await api('/api/books/' + id + '/stock', 'POST'); await loadState(); toast('Stock updated.', 'success'); }catch(e){ toast('' + e, 'error'); } }
   async function confirmAd(id){ try{ await api('/api/books/' + id + '/ad/confirm', 'POST', null, true); await loadState(); toast('Ad confirmed and live.', 'success'); }catch(e){ toast('' + e, 'error'); } }
+  async function refundOrder(tracking){ try{ await api('/api/orders/' + encodeURIComponent(tracking) + '/refund', 'POST'); await loadState(); toast('Order marked as refunded.', 'success'); }catch(e){ toast('' + e, 'error'); } }
 
   function switchView(name){
     document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
@@ -609,7 +701,10 @@
     var b = findBook(id);
     if(!b || b.outOfStock) return;
     activeBookId = id; activeQty = 1; activeCoupon = null;
+    uploadedUrls.checkoutProof = null;
     document.getElementById('couponInput').value = '';
+    document.getElementById('buyerContact').value = '';
+    document.getElementById('checkout-proof-status').textContent = '';
     document.getElementById('modalBookTitle').textContent = b.title + ' - ' + b.author;
     updateCheckoutPrice();
     document.getElementById('modalAccountBox').innerHTML =
@@ -641,7 +736,7 @@
   document.getElementById('confirmBtn').addEventListener('click', async function(){
     if(!document.getElementById('cod-terms').checked){ toast('Please agree to the terms first.', 'error'); return; }
     try{
-      var order = await api('/api/orders', 'POST', { bookId: activeBookId, qty: activeQty, coupon: activeCoupon ? activeCoupon.code : undefined });
+      var order = await api('/api/orders', 'POST', { bookId: activeBookId, qty: activeQty, coupon: activeCoupon ? activeCoupon.code : undefined, buyerContact: document.getElementById('buyerContact').value.trim() || null, proofUrl: uploadedUrls.checkoutProof });
       toast('PAID SUCCESSFULLY. Tracking: ' + order.tracking + ' - Scratch code: ' + order.code, 'success');
       document.getElementById('confirmBtn').disabled = true;
       await loadState();
@@ -657,6 +752,19 @@
     document.getElementById('detailBuyBtn').disabled = b.outOfStock;
     document.getElementById('detailBuyBtn').textContent = b.outOfStock ? 'Sold out' : 'Buy this book';
     document.getElementById('detailBuyBtn').onclick = function(){ document.getElementById('detailOverlay').classList.remove('show'); openCheckout(id); };
+    document.getElementById('shareBtn').onclick = async function(){
+      var url = location.href.split('#')[0] + '#book-' + id;
+      if(navigator.share){ try{ await navigator.share({ title: b.title, text: 'Check out ' + b.title + ' on Codex', url: url }); }catch(e){} }
+      else{ try{ await navigator.clipboard.writeText(url); toast('Link copied to clipboard.', 'success'); }catch(e){ toast('Could not copy link.', 'error'); } }
+    };
+    var related = books.filter(function(x){ return x.category === b.category && x.id !== b.id; }).slice(0,3);
+    document.getElementById('relatedBooks').innerHTML = related.length ? related.map(function(r){
+      return '<div class="rcard" data-open="' + r.id + '"><div class="rcover" style="background:' + r.grad + '"></div>' + esc(r.title) + '</div>';
+    }).join('') : '<p class="field-hint">Nothing else in this category yet.</p>';
+    document.getElementById('relatedBooks').onclick = function(e){
+      var c = e.target.closest('[data-open]');
+      if(c) openDetail(parseInt(c.dataset.open));
+    };
     var rl = document.getElementById('reviewList');
     rl.innerHTML = b.reviews.length ? b.reviews.map(function(r){
       return '<div class="review"><div class="stars">' + stars(r.stars) + '</div><p><b>' + esc(r.name) + '</b> - ' + esc(r.comment) + '</p></div>';
@@ -668,8 +776,7 @@
       if(!name || !comment){ toast('Add your name and a comment.', 'error'); return; }
       try{
         await api('/api/books/' + id + '/reviews', 'POST', { name: name, stars: stars_, comment: comment });
-        await loadState();
-        openDetail(id);
+        await loadState(); openDetail(id);
         document.getElementById('rv-name').value = ''; document.getElementById('rv-comment').value = '';
         toast('Review posted, thank you.', 'success');
       }catch(e){ toast('' + e, 'error'); }
@@ -689,31 +796,30 @@
     var accNum = document.getElementById('s-acc-num').value.trim();
     var accType = document.getElementById('s-acc-type').value;
     var phone = document.getElementById('s-phone').value.trim();
-    if(!title || !author || !price || !accName || !accNum || !accType || !phone){
-      toast('Please fill in every field marked with a star before publishing.', 'error'); return;
-    }
+    if(!title || !author || !price || !accName || !accNum || !accType || !phone){ toast('Please fill in every field marked with a star before publishing.', 'error'); return; }
     try{
-      await api('/api/books', 'POST', { title:title, author:author, description:description, category:category, price:price, quantity:quantity, accName:accName, accNum:accNum, accType:accType, phone:phone });
+      await api('/api/books', 'POST', { title:title, author:author, description:description, category:category, price:price, quantity:quantity, cover: uploadedUrls.cover, accName:accName, accNum:accNum, accType:accType, phone:phone });
       await loadState();
       toast('Listing published. It is live on the Shop tab for everyone now.', 'success');
-      ['s-title','s-author','s-desc','s-price','s-qty','s-cover','s-acc-name','s-acc-num','s-phone'].forEach(function(id){ document.getElementById(id).value = ''; });
-      document.getElementById('s-acc-type').value = '';
+      ['s-title','s-author','s-desc','s-price','s-qty','s-acc-name','s-acc-num','s-phone'].forEach(function(id){ document.getElementById(id).value = ''; });
+      document.getElementById('s-acc-type').value = ''; document.getElementById('s-cover').value = ''; document.getElementById('s-cover-status').textContent = '';
+      uploadedUrls.cover = null;
     }catch(err){ toast('Could not publish: ' + err, 'error'); }
   });
 
   document.getElementById('submitAdBtn').addEventListener('click', async function(){
     var idx = parseInt(document.getElementById('ad-book').value);
     var desc = document.getElementById('s-ad-desc').value.trim();
-    var video = document.getElementById('s-ad-video').value.trim();
     var rate = parseInt(document.getElementById('s-ad-rate').value) || 0;
-    var proof = document.getElementById('ad-proof').value.trim();
-    if(isNaN(idx) || !desc || !video || !rate || !proof){ toast('Please fill in every field marked with a star, including proof of payment.', 'error'); return; }
+    if(isNaN(idx) || !desc || !uploadedUrls.adVideo || !rate || !uploadedUrls.adProof){ toast('Please fill in every field marked with a star, including the video and proof of payment.', 'error'); return; }
     try{
-      await api('/api/books/' + idx + '/ad', 'POST', { desc:desc, rate:rate });
+      await api('/api/books/' + idx + '/ad', 'POST', { desc:desc, rate:rate, videoUrl: uploadedUrls.adVideo, proofUrl: uploadedUrls.adProof });
       await loadState();
       toast('Ad submitted. It goes live once Codex confirms your payment.', 'success');
-      document.getElementById('s-ad-desc').value = ''; document.getElementById('s-ad-video').value = '';
-      document.getElementById('s-ad-rate').value = ''; document.getElementById('ad-proof').value = '';
+      document.getElementById('s-ad-desc').value = ''; document.getElementById('s-ad-rate').value = '';
+      document.getElementById('s-ad-video').value = ''; document.getElementById('ad-proof').value = '';
+      document.getElementById('s-ad-video-status').textContent = ''; document.getElementById('ad-proof-status').textContent = '';
+      uploadedUrls.adVideo = null; uploadedUrls.adProof = null;
     }catch(err){ toast('Could not submit ad: ' + err, 'error'); }
   });
 
@@ -739,8 +845,34 @@
       document.getElementById('track-book').textContent = order.title + ' - ' + money(order.price);
       document.getElementById('track-code').textContent = 'Scratch code: ' + (order.code || 'not issued for this order');
       document.getElementById('tl-dispatch').classList.toggle('done', !!order.dispatched);
+      document.getElementById('track-paid-badge').style.display = order.cancelled ? 'none' : 'inline-block';
+      document.getElementById('track-cancelled-badge').style.display = order.cancelled ? 'inline-block' : 'none';
+      document.getElementById('track-refunded-badge').style.display = order.refunded ? 'inline-block' : 'none';
+      var canCancel = !order.dispatched && !order.cancelled && (Date.now() - (order.createdAt||0) < 15*60*1000);
+      var cancelBtn = document.getElementById('cancelOrderBtn');
+      cancelBtn.style.display = canCancel ? 'inline-block' : 'none';
+      cancelBtn.onclick = async function(){
+        try{ await api('/api/orders/' + encodeURIComponent(num) + '/cancel', 'POST'); toast('Order cancelled.', 'success'); document.getElementById('trackBtn').click(); await loadState(); }
+        catch(e){ toast('' + e, 'error'); }
+      };
+      document.getElementById('receiptBtn').onclick = function(){
+        document.getElementById('printArea').innerHTML = '<h2>Codex Receipt</h2><p>Tracking number: ' + esc(order.tracking) + '</p><p>Item: ' + esc(order.title) + '</p><p>Amount paid: ' + money(order.price) + '</p><p>Scratch code: ' + esc(order.code||'n/a') + '</p>';
+        window.print();
+      };
       timeline.style.display = 'block';
     }catch(e){ timeline.style.display = 'none'; toast('No order found with that tracking number.', 'error'); }
+  });
+
+  document.getElementById('myOrdersBtn').addEventListener('click', async function(){
+    var contact = document.getElementById('myOrdersContact').value.trim().toLowerCase();
+    var listEl = document.getElementById('myOrdersList');
+    if(!contact){ toast('Enter the phone or email you used at checkout.', 'error'); return; }
+    try{
+      var results = await api('/api/orders?contact=' + encodeURIComponent(contact));
+      listEl.innerHTML = results.length ? results.map(function(o){
+        return '<div class="order-card"><div class="row"><span>' + esc(o.tracking) + '</span><span class="price">' + money(o.price) + '</span></div><div class="field-hint">' + esc(o.title) + '</div></div>';
+      }).join('') : '<p class="field-hint">No orders found for that contact.</p>';
+    }catch(e){ listEl.innerHTML = '<p class="field-hint">No orders found for that contact.</p>'; }
   });
 
   document.getElementById('complaintBtn').addEventListener('click', async function(){
@@ -752,14 +884,18 @@
   });
 
   document.getElementById('paySubBtn').addEventListener('click', async function(){
-    var proof = document.getElementById('sub-proof').value.trim();
-    if(!proof){ toast('Please attach proof of payment first.', 'error'); return; }
+    if(!uploadedUrls.subProof){ toast('Please attach proof of payment first.', 'error'); return; }
     try{
-      var sub = await api('/api/subscription/pay', 'POST', null, true);
-      subscription = sub; renderSubscription();
-      toast('Payment recorded. Reference: ' + sub.history[0].reference, 'success');
-      document.getElementById('sub-proof').value = '';
+      subscription = await api('/api/subscription/submit', 'POST', { proofUrl: uploadedUrls.subProof });
+      renderSubscription();
+      toast('Submitted. Awaiting confirmation.', 'success');
+      document.getElementById('sub-proof').value = ''; document.getElementById('sub-proof-status').textContent = '';
+      uploadedUrls.subProof = null;
     }catch(e){ toast('' + e, 'error'); }
+  });
+  document.getElementById('confirmSubBtn').addEventListener('click', async function(){
+    try{ subscription = await api('/api/subscription/confirm', 'POST', null, true); renderSubscription(); toast('Subscription payment confirmed.', 'success'); }
+    catch(e){ toast('' + e, 'error'); }
   });
 
   document.getElementById('newsBtn').addEventListener('click', async function(){
@@ -774,6 +910,8 @@
       var next = new Date(subscription.lastPaid); next.setDate(next.getDate() + 30);
       statusEl.textContent = 'Active until ' + next.toDateString();
     } else { statusEl.textContent = 'No payment recorded yet'; }
+    document.getElementById('pendingSub').style.display = subscription.pending ? 'block' : 'none';
+    document.getElementById('submitSubSection').style.display = subscription.pending ? 'none' : 'block';
     var histEl = document.getElementById('subHistory');
     histEl.innerHTML = (subscription.history && subscription.history.length) ? subscription.history.map(function(h){
       return '<div class="history-item"><span>' + esc(h.reference) + '</span><span>' + esc(h.date) + '</span></div>';
@@ -793,7 +931,7 @@
     try{
       var order = await api('/api/orders/' + encodeURIComponent(tracking));
       var text = encodeURIComponent('Hello! Your order for "' + order.title + '" is on the way. Tracking number: ' + order.tracking + '. Scratch code: ' + (order.code || 'n/a'));
-      var phone = (order.phone || '').replace(/[^0-9]/g, '');
+      var phone = (order.phone || order.sellerPhone || '').replace(/[^0-9]/g, '');
       window.open('https://wa.me/' + phone + '?text=' + text, '_blank');
     }catch(e){ toast('Could not find that order.', 'error'); }
   }
@@ -802,17 +940,20 @@
   function setupAdRotation(){
     var ads = books.filter(function(b){ return b.ad && b.ad.confirmed; }).map(function(b){ return b.ad; });
     var adTextEl = document.getElementById('adText');
+    var adWatchEl = document.getElementById('adWatch');
     if(adTimer) clearInterval(adTimer);
-    if(ads.length === 0){ adTextEl.textContent = 'No ads running right now.'; return; }
+    if(ads.length === 0){ adTextEl.textContent = 'No ads running right now.'; adWatchEl.style.display = 'none'; return; }
     var idx = 0;
-    function show(){ adTextEl.innerHTML = ads[idx].desc + ' <b>(' + money(ads[idx].rate) + '/hr)</b>'; idx = (idx + 1) % ads.length; }
+    function show(){
+      adTextEl.innerHTML = ads[idx].desc + ' <b>(' + money(ads[idx].rate) + '/hr)</b>';
+      if(ads[idx].videoUrl){ adWatchEl.href = ads[idx].videoUrl; adWatchEl.style.display = 'inline'; } else { adWatchEl.style.display = 'none'; }
+      idx = (idx + 1) % ads.length;
+    }
     show();
     adTimer = setInterval(show, 6000);
   }
 
-  window.addEventListener('scroll', function(){
-    document.getElementById('backTop').classList.toggle('show', window.scrollY > 400);
-  });
+  window.addEventListener('scroll', function(){ document.getElementById('backTop').classList.toggle('show', window.scrollY > 400); });
   document.getElementById('backTop').addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
 
   loadState();
