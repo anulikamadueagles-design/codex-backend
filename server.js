@@ -78,16 +78,15 @@ function seedDB() {
   const oldEnough = Date.now() - 20 * 24 * 60 * 60 * 1000;
   const db = {
     books: [
-      { id: 1, title: "The Glass Horizon", author: "Nadia Ferro", description: "A shipbuilder's daughter chases a signal across a dying solar system.", price: 6500, category: "Sci-Fi & Fantasy", quantity: 12, cover: null, grad: "linear-gradient(155deg,#1f3d1a,#39ff8f 130%)", accName: "Nadia Ferro", accNum: "0221394857", accType: "Kuda", phone: "08031234567", ad: { desc: "Fresh sci-fi drop this week, signed copies available.", rate: 3000, confirmed: true, videoUrl: null, proofUrl: null }, reviews: [{ name: "Tomiwa", stars: 5, comment: "Could not put it down.", date: "2026-08-02" }], createdAt: oldEnough },
-      { id: 2, title: "Systems of Tomorrow", author: "D. Okonkwo", description: "A field guide to thinking in systems, written for builders.", price: 4200, category: "Business", quantity: 20, cover: null, grad: "linear-gradient(155deg,#1a2e12,#ffd54a 130%)", accName: "D. Okonkwo", accNum: "3013948527", accType: "Bank transfer", phone: "08129876543", ad: null, reviews: [], createdAt: oldEnough },
-      { id: 3, title: "Ashes of the Archive", author: "R. Bello", description: "A librarian uncovers a conspiracy buried in the stacks.", price: 5000, category: "Fiction", quantity: 8, cover: null, grad: "linear-gradient(155deg,#2b1a08,#ffd54a 140%)", accName: "R. Bello", accNum: "7729384012", accType: "PalmPay", phone: "07056677889", ad: null, reviews: [{ name: "Chidera", stars: 4, comment: "Slow start, great payoff.", date: "2026-07-20" }], createdAt: oldEnough },
-      { id: 4, title: "Quiet Capital", author: "T. Adeyemi", description: "How patient money actually gets made, told through ten founders.", price: 7800, category: "Business", quantity: 15, cover: null, grad: "linear-gradient(155deg,#0f2a1c,#39ff8f 130%)", accName: "T. Adeyemi", accNum: "8843920156", accType: "Opay", phone: "09022334455", ad: null, reviews: [], createdAt: oldEnough },
-      { id: 5, title: "Signal and Silence", author: "Nadia Ferro", description: "Book two of the Horizon series.", price: 3900, category: "Sci-Fi & Fantasy", quantity: 10, cover: null, grad: "linear-gradient(155deg,#241a08,#ffd54a 130%)", accName: "Nadia Ferro", accNum: "0221394857", accType: "Kuda", phone: "08031234567", ad: { desc: "Signal and Silence: book two of the Horizon series, out now.", rate: 2500, confirmed: true, videoUrl: null, proofUrl: null }, reviews: [], createdAt: oldEnough },
-      { id: 6, title: "Building with Bits", author: "K. Umeh", description: "Ship software fast without breaking things later.", price: 5600, category: "Software & Hardware", quantity: 18, cover: null, grad: "linear-gradient(155deg,#122a1a,#39ff8f 130%)", accName: "K. Umeh", accNum: "5567788990", accType: "Opay", phone: "08155566778", ad: null, reviews: [{ name: "Uche", stars: 5, comment: "Practical and to the point.", date: "2026-06-11" }], createdAt: oldEnough }
+      { id: 1, title: "The Glass Horizon", author: "Nadia Ferro", description: "A shipbuilder's daughter chases a signal across a dying solar system.", price: 6500, category: "Sci-Fi & Fantasy", quantity: 12, cover: null, grad: "linear-gradient(135deg,#0f8a5f,#0b6b48)", accName: "Nadia Ferro", accNum: "0221394857", accType: "Kuda", phone: "08031234567", ad: { desc: "Fresh sci-fi drop this week, signed copies available.", rate: 3000, confirmed: true, videoUrl: null, proofUrl: null }, reviews: [{ name: "Tomiwa", stars: 5, comment: "Could not put it down.", date: "2026-08-02" }], createdAt: oldEnough },
+      { id: 2, title: "Systems of Tomorrow", author: "D. Okonkwo", description: "A field guide to thinking in systems, written for builders.", price: 4200, category: "Business", quantity: 20, cover: null, grad: "linear-gradient(135deg,#b45309,#92400e)", accName: "D. Okonkwo", accNum: "3013948527", accType: "Bank transfer", phone: "08129876543", ad: null, reviews: [], createdAt: oldEnough },
+      { id: 3, title: "Ashes of the Archive", author: "R. Bello", description: "A librarian uncovers a conspiracy buried in the stacks.", price: 5000, category: "Fiction", quantity: 8, cover: null, grad: "linear-gradient(135deg,#1f2937,#111827)", accName: "R. Bello", accNum: "7729384012", accType: "PalmPay", phone: "07056677889", ad: null, reviews: [{ name: "Chidera", stars: 4, comment: "Slow start, great payoff.", date: "2026-07-20" }], createdAt: oldEnough },
+      { id: 4, title: "Quiet Capital", author: "T. Adeyemi", description: "How patient money actually gets made, told through ten founders.", price: 7800, category: "Business", quantity: 15, cover: null, grad: "linear-gradient(135deg,#0f766e,#115e59)", accName: "T. Adeyemi", accNum: "8843920156", accType: "Opay", phone: "09022334455", ad: null, reviews: [], createdAt: oldEnough },
+      { id: 5, title: "Signal and Silence", author: "Nadia Ferro", description: "Book two of the Horizon series.", price: 3900, category: "Sci-Fi & Fantasy", quantity: 10, cover: null, grad: "linear-gradient(135deg,#374151,#1f2937)", accName: "Nadia Ferro", accNum: "0221394857", accType: "Kuda", phone: "08031234567", ad: { desc: "Signal and Silence: book two of the Horizon series, out now.", rate: 2500, confirmed: true, videoUrl: null, proofUrl: null }, reviews: [], createdAt: oldEnough },
+      { id: 6, title: "Building with Bits", author: "K. Umeh", description: "Ship software fast without breaking things later.", price: 5600, category: "Software & Hardware", quantity: 18, cover: null, grad: "linear-gradient(135deg,#0e7490,#164e63)", accName: "K. Umeh", accNum: "5567788990", accType: "Opay", phone: "08155566778", ad: null, reviews: [{ name: "Uche", stars: 5, comment: "Practical and to the point.", date: "2026-06-11" }], createdAt: oldEnough }
     ],
     orders: [],
     complaints: [],
-    subscription: { history: [], lastPaid: null, pending: null },
     coupons: [{ code: "WELCOME10", percent: 10 }, { code: "BOOKLOVER15", percent: 15 }],
     newsletter: [],
     nextBookId: 7
@@ -101,7 +100,6 @@ function loadDB() {
     const db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     if (!db.coupons) db.coupons = [{ code: "WELCOME10", percent: 10 }];
     if (!db.newsletter) db.newsletter = [];
-    if (db.subscription && db.subscription.pending === undefined) db.subscription.pending = null;
     return db;
   } catch (e) { return seedDB(); }
 }
@@ -109,7 +107,6 @@ function saveDB(db) { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2)); }
 
 function genTracking() { return 'CDX-' + Math.floor(10000 + Math.random() * 89999); }
 function genScratch() { return 'SC-' + Math.floor(1000 + Math.random() * 8999) + '-' + Math.floor(1000 + Math.random() * 8999); }
-function genRef() { return 'SUB-' + Math.floor(100000 + Math.random() * 899999); }
 
 function bookOrderCounts(db) {
   const counts = {};
@@ -133,7 +130,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().t
 
 app.get('/api/state', asyncRoute((req, res) => {
   const db = loadDB();
-  res.json({ books: publicBooks(db), orders: db.orders, subscription: db.subscription });
+  res.json({ books: publicBooks(db), orders: db.orders });
 }));
 
 app.post('/api/books', asyncRoute((req, res) => {
@@ -142,7 +139,9 @@ app.post('/api/books', asyncRoute((req, res) => {
   if (!b.title || !b.author || !Number(b.price) || Number(b.price) <= 0) return res.status(400).json({ error: 'Title, author, and a price above 0 are required.' });
   if (!b.accName || !b.accNum || !b.accType || !b.phone) return res.status(400).json({ error: 'Full payout details are required.' });
   if (!/^[0-9]{10,11}$/.test(String(b.phone).replace(/\D/g, ''))) return res.status(400).json({ error: 'Phone number should be 10-11 digits.' });
-  const grads = ["linear-gradient(155deg,#1f3d1a,#39ff8f 130%)", "linear-gradient(155deg,#1a2e12,#ffd54a 130%)", "linear-gradient(155deg,#2b1a08,#ffd54a 140%)", "linear-gradient(155deg,#0f2a1c,#39ff8f 130%)"];
+  const dup = db.books.find(x => x.title.toLowerCase() === String(b.title).toLowerCase() && x.author.toLowerCase() === String(b.author).toLowerCase());
+  if (dup) return res.status(409).json({ error: 'A listing with that title and author already exists.' });
+  const grads = ["linear-gradient(135deg,#0f8a5f,#0b6b48)", "linear-gradient(135deg,#b45309,#92400e)", "linear-gradient(135deg,#1f2937,#111827)", "linear-gradient(135deg,#0f766e,#115e59)"];
   const book = {
     id: db.nextBookId++, title: String(b.title).slice(0, 120), author: String(b.author).slice(0, 80),
     description: String(b.description || '').slice(0, 600), price: Number(b.price),
@@ -150,7 +149,7 @@ app.post('/api/books', asyncRoute((req, res) => {
     cover: b.cover || null,
     grad: grads[Math.floor(Math.random() * grads.length)],
     accName: b.accName, accNum: b.accNum, accType: b.accType, phone: b.phone,
-    ad: null, reviews: [], createdAt: Date.now()
+    ad: null, reviews: [], createdAt: Date.now(), notifyCount: 0
   };
   db.books.unshift(book);
   saveDB(db);
@@ -309,26 +308,25 @@ app.post('/api/newsletter', asyncRoute((req, res) => {
   res.json({ ok: true });
 }));
 
-app.get('/api/subscription', asyncRoute((req, res) => res.json(loadDB().subscription)));
-
-app.post('/api/subscription/submit', asyncRoute((req, res) => {
+app.post('/api/books/:id/notify', asyncRoute((req, res) => {
   const db = loadDB();
-  if (!req.body.proofUrl) return res.status(400).json({ error: 'Proof of payment is required.' });
-  db.subscription.pending = { proofUrl: req.body.proofUrl, submittedAt: Date.now() };
+  const book = db.books.find(x => x.id === Number(req.params.id));
+  if (!book) return res.status(404).json({ error: 'Listing not found.' });
+  book.notifyCount = (book.notifyCount || 0) + 1;
   saveDB(db);
-  res.json(db.subscription);
+  res.json({ notifyCount: book.notifyCount });
 }));
 
-app.post('/api/subscription/confirm', requireAdmin, asyncRoute((req, res) => {
+app.get('/api/orders/export.csv', asyncRoute((req, res) => {
   const db = loadDB();
-  if (!db.subscription.pending) return res.status(400).json({ error: 'No pending subscription payment to confirm.' });
-  const ref = genRef();
-  const now = new Date();
-  db.subscription.history.unshift({ reference: ref, date: now.toDateString(), proofUrl: db.subscription.pending.proofUrl });
-  db.subscription.lastPaid = now.toISOString();
-  db.subscription.pending = null;
-  saveDB(db);
-  res.json(db.subscription);
+  const rows = [['tracking', 'title', 'price', 'qty', 'buyer_contact', 'cancelled', 'refunded', 'dispatched', 'created']];
+  db.orders.forEach(o => {
+    rows.push([o.tracking, o.title, o.price, o.qty || 1, o.buyerContact || o.buyer || '', !!o.cancelled, !!o.refunded, !!o.dispatched, o.createdAt ? new Date(o.createdAt).toISOString() : '']);
+  });
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename="codex-orders.csv"');
+  res.send(csv);
 }));
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Unknown API route.' }));

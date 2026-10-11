@@ -19,6 +19,12 @@
     --radius:10px;
     box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   }
+  :root[data-theme="dark"]{
+    --bg:#14181c; --surface:#1c2127; --surface2:#242a31; --line:#323a43;
+    --text:#edf0f2; --muted:#9aa5b1; --primary:#2dd98a; --primary-dark:#23b374;
+    --accent:#f0a44a; --danger:#f08a81; --danger-bg:#3a2320; --success-bg:#1c3328;
+  }
+  body{transition:background-color .2s ease, color .2s ease;}
   *{box-sizing:inherit;margin:0;padding:0;}
   html{scroll-padding-top:env(safe-area-inset-top,0px);}
   html,body{height:100%;}
@@ -99,6 +105,15 @@
   .badge.low{background:#fef3e2;color:var(--accent);}
   .badge.new{background:var(--success-bg);color:var(--primary-dark);}
   .badge.best{background:#171a1f;color:#fff;}
+  .sticky-buy{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:none;align-items:center;justify-content:space-between;gap:12px;z-index:60;}
+  @media(max-width:639px){ .overlay.show .sticky-buy{display:flex;} }
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:90;display:none;align-items:center;justify-content:center;cursor:zoom-out;}
+  .lightbox.show{display:flex;}
+  .lightbox img{max-width:92vw;max-height:88vh;border-radius:6px;}
+  .heart-btn{position:absolute;bottom:8px;right:8px;z-index:2;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.9);color:#9aa5b1;font-size:15px;display:flex;align-items:center;justify-content:center;}
+  .heart-btn.saved{color:var(--danger);}
+  .heart-btn:hover{color:var(--danger);}
+  .verified{font-size:10px;color:var(--primary);font-weight:700;background:var(--success-bg);padding:1px 6px;border-radius:4px;}
   .meta{padding:12px 14px 14px;}
   .meta .author{font-size:12px;color:var(--muted);margin-bottom:3px;}
   .meta .title{font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.3;}
@@ -222,7 +237,7 @@
 <header>
   <div class="brand">
     <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-      <defs><linearGradient id="g1" x1="0" y1="0" x2="26" y2="26"><stop stop-color="#39ff8f"/><stop offset="1" stop-color="#ffd54a"/></linearGradient></defs>
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="26" y2="26"><stop stop-color="#0f8a5f"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs>
       <path d="M4 5C4 4 5 3 6 3H13V23H6C5 23 4 22 4 21V5Z" fill="url(#g1)" opacity="0.9"/>
       <path d="M22 5C22 4 21 3 20 3H13V23H20C21 23 22 22 22 21V5Z" fill="url(#g1)" opacity="0.45"/>
     </svg>
@@ -231,10 +246,13 @@
   <nav class="tabs">
     <button data-view="shop" class="active">Shop</button>
     <button data-view="sell">Sell</button>
-    <button data-view="company">Company</button>
     <button data-view="track">Track</button>
   </nav>
-  <div class="cart-btn">Orders <span class="n" id="cartCount">0</span></div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="cart-btn" id="wishlistBtn" title="Saved books">Saved <span class="n" id="wishlistCount">0</span></button>
+    <button class="cart-btn" id="themeToggle" title="Toggle dark mode">&#9680;</button>
+    <div class="cart-btn">Orders <span class="n" id="cartCount">0</span></div>
+  </div>
 </header>
 
 <div class="view active" id="view-shop">
@@ -243,7 +261,7 @@
   <section class="hero">
     <div class="kicker">A MARKETPLACE FOR BOOKS</div>
     <h1>Buy books directly<br>from <em>independent sellers</em>.</h1>
-    <p>Browse titles from independent sellers, pay each seller directly, and get a tracking number and scratch code the moment your order is confirmed. Readers never pay a subscription — only for what they buy.</p>
+    <p>Browse titles from independent sellers, pay each seller directly, and get a tracking number and scratch code the moment your order is confirmed. No listing fees, no reader subscriptions.</p>
     <div class="hero-cta">
       <a class="btn-primary" href="#shelf">Browse the shelf</a>
       <button class="btn-ghost" data-nav="sell">List your books</button>
@@ -269,9 +287,15 @@
 
   <div class="cats" id="catChips"></div>
 
+  <section class="shelf" id="recentlyViewed" style="display:none;">
+    <div class="shelf-head"><h2>Recently viewed</h2></div>
+    <div class="grid"></div>
+  </section>
+
   <section class="shelf" id="shelf">
     <div class="shelf-head"><h2>Trending this week</h2><span id="bookCount"></span></div>
     <div class="grid" id="bookGrid"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+    <div id="loadMoreWrap" style="display:none;text-align:center;margin-top:20px;"><button class="btn-ghost" id="loadMoreBtn">Load more books</button></div>
   </section>
 
   <section class="trust">
@@ -348,8 +372,13 @@
     </div>
 
     <div class="panel-inner">
-      <h3 class="sub-head">Sales overview</h3>
+      <div class="row" style="align-items:baseline;">
+        <h3 class="sub-head">Sales overview</h3>
+        <a class="btn-small" href="/api/orders/export.csv" download>Export orders CSV</a>
+      </div>
       <div class="dash" id="salesDash"></div>
+      <div id="salesChart" style="margin-bottom:6px;"></div>
+      <div id="needsAttention"></div>
       <h3 class="sub-head" style="margin-top:4px;">Manage listings and orders</h3>
       <p class="field-hint" style="margin-top:-2px;margin-bottom:8px;">Mark items out of stock, print a waybill, refund an order, or send a tracking number over WhatsApp. Confirming an ad payment needs the admin key.</p>
       <div id="manageList"></div>
@@ -357,35 +386,6 @@
   </div>
 </div>
 
-<div class="view" id="view-company">
-  <div class="panel">
-    <div class="panel-inner">
-      <h2>Platform subscription</h2>
-      <p class="sub">This section is for the company that licenses and operates Codex. It has nothing to do with what readers or sellers pay.</p>
-      <div class="account-box" style="margin-bottom:18px;">
-        <div class="row"><span>Monthly fee</span><span>Naira 500,000</span></div>
-        <div class="row"><span>Status</span><span id="subStatus">No payment recorded yet</span></div>
-      </div>
-      <div class="account-box">
-        <div class="row"><span>Account name</span><span>Dauda Joseph</span></div>
-        <div class="row"><span>Account number</span><span>8085743879</span></div>
-        <div class="row"><span>Account type</span><span>Opay</span></div>
-      </div>
-      <div id="pendingSub" style="display:none;">
-        <div class="terms-box" style="margin-top:14px;">A payment has been submitted and is awaiting confirmation.</div>
-        <button class="btn-gold" style="width:100%;margin-top:14px;" id="confirmSubBtn">Confirm payment received (admin)</button>
-      </div>
-      <div id="submitSubSection">
-        <label>Proof of payment *</label><input type="file" id="sub-proof" accept="image/*"><div class="upload-status" id="sub-proof-status"></div>
-        <button class="btn-gold" style="width:100%;margin-top:20px;" id="paySubBtn">I've paid — submit for confirmation</button>
-      </div>
-    </div>
-    <div class="panel-inner">
-      <h3 class="sub-head">Payment history</h3>
-      <div id="subHistory"><p class="field-hint">No payments recorded yet.</p></div>
-    </div>
-  </div>
-</div>
 
 <div class="view" id="view-track">
   <div class="panel">
@@ -429,7 +429,7 @@
 <footer>
   <div class="fcol"><div class="fbrand">Codex</div><div style="color:var(--muted);">A marketplace where readers pay sellers directly, and sellers keep what they sell.</div></div>
   <div class="fcol"><h4>Marketplace</h4><div data-nav="shop">Shop</div><div data-nav="sell">Sell on Codex</div><div data-nav="track">Track an order</div></div>
-  <div class="fcol"><h4>Platform</h4><div data-nav="company">Company subscription</div><div>Contact a seller</div></div>
+  <div class="fcol"><h4>Platform</h4><div data-legal="terms">Terms of use</div><div data-legal="privacy">Privacy policy</div></div>
   <div class="fcol"><h4>Stay updated</h4><input type="email" id="newsEmail" placeholder="you@email.com"><button class="btn-small" id="newsBtn" style="width:100%;">Subscribe</button></div>
 </footer>
 
@@ -458,6 +458,8 @@
 <div class="overlay" id="detailOverlay">
   <div class="modal">
     <div class="modal-head"><h3 id="detailTitle"></h3><button class="close-x" id="closeDetailBtn">Close</button></div>
+    <p class="field-hint" id="detailBreadcrumb" style="margin-bottom:10px;"></p>
+    <div class="cover" id="detailCover" style="height:140px;border-radius:8px;cursor:zoom-in;margin-bottom:14px;"></div>
     <p class="field-hint" id="detailAuthor" style="margin-bottom:10px;"></p>
     <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:14px;" id="detailDesc"></p>
     <p class="price" id="detailPrice" style="font-size:18px;margin-bottom:16px;"></p>
@@ -465,6 +467,7 @@
       <button class="btn-primary" style="flex:1;" id="detailBuyBtn">Buy this book</button>
       <button class="btn-ghost" id="shareBtn" title="Share">Share</button>
     </div>
+    <button class="btn-small" id="reportListingBtn" style="margin-top:10px;">Report this listing</button>
     <div class="divider"></div>
     <h3 class="sub-head">You might also like</h3>
     <div class="related" id="relatedBooks"></div>
@@ -475,6 +478,19 @@
     <label>Rating</label><select id="rv-stars"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Okay</option><option value="2">2 - Not great</option><option value="1">1 - Poor</option></select>
     <label>Your review</label><textarea id="rv-comment" placeholder="What did you think?"></textarea>
     <button class="btn-ghost" style="width:100%;margin-top:14px;" id="submitReviewBtn">Submit review</button>
+  </div>
+  <div class="sticky-buy" id="stickyBuy">
+    <span class="price" id="stickyPrice"></span>
+    <button class="btn-primary" id="stickyBuyBtn">Buy now</button>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox"><img id="lightboxImg" src="" alt=""></div>
+
+<div class="overlay" id="legalOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3 id="legalTitle"></h3><button class="close-x" id="closeLegalBtn">Close</button></div>
+    <div id="legalBody" style="font-size:13px;color:var(--muted);line-height:1.7;"></div>
   </div>
 </div>
 
@@ -488,6 +504,43 @@
   function stars(n){ var s=''; for(var i=0;i<5;i++){ s += i < Math.round(n) ? '\u2605' : '\u2606'; } return s; }
   function avgStars(reviews){ if(!reviews || reviews.length===0) return 0; var sum=0; reviews.forEach(function(r){sum+=r.stars;}); return sum/reviews.length; }
   function coverHtml(b){ return b.cover ? '<img src="' + esc(b.cover) + '" alt="' + esc(b.title) + ' cover">' : ''; }
+
+  function applyTheme(){
+    var saved = localStorage.getItem('codex_theme');
+    var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+  applyTheme();
+  document.getElementById('themeToggle').addEventListener('click', function(){
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('codex_theme', next);
+  });
+
+  function getWishlist(){ try{ return JSON.parse(localStorage.getItem('codex_wishlist') || '[]'); }catch(e){ return []; } }
+  function setWishlist(list){ localStorage.setItem('codex_wishlist', JSON.stringify(list)); document.getElementById('wishlistCount').textContent = list.length; }
+  function toggleWishlist(id){
+    var list = getWishlist();
+    var i = list.indexOf(id);
+    if(i === -1) list.push(id); else list.splice(i, 1);
+    setWishlist(list);
+    renderBooks();
+  }
+  var showWishlistOnly = false;
+  document.getElementById('wishlistBtn').addEventListener('click', function(){
+    showWishlistOnly = !showWishlistOnly;
+    this.style.borderColor = showWishlistOnly ? 'var(--primary)' : '';
+    this.style.color = showWishlistOnly ? 'var(--primary)' : '';
+    resetPaging(); renderBooks();
+  });
+
+  function getHelpfulVotes(){ try{ return JSON.parse(localStorage.getItem('codex_helpful') || '[]'); }catch(e){ return []; } }
+  function getRecentlyViewed(){ try{ return JSON.parse(localStorage.getItem('codex_recent') || '[]'); }catch(e){ return []; } }
+  function addRecentlyViewed(id){
+    var list = getRecentlyViewed().filter(function(x){ return x !== id; });
+    list.unshift(id);
+    localStorage.setItem('codex_recent', JSON.stringify(list.slice(0, 6)));
+  }
 
   function toast(msg, type){
     var el = document.createElement('div');
@@ -504,10 +557,10 @@
     return k;
   }
 
-  var books = [], orders = [], subscription = {history:[], pending:null};
+  var books = [], orders = [];
   var activeBookId = null, activeQty = 1, activeCoupon = null;
   var currentCategory = 'All', currentSort = 'default', currentSearch = '';
-  var uploadedUrls = { cover:null, adVideo:null, adProof:null, checkoutProof:null, subProof:null };
+  var uploadedUrls = { cover:null, adVideo:null, adProof:null, checkoutProof:null };
 
   async function api(url, method, body, adminAction){
     var opts = { method: method || 'GET', headers: {} };
@@ -537,13 +590,12 @@
   document.getElementById('s-ad-video').addEventListener('change', function(){ uploadFile(this, document.getElementById('s-ad-video-status'), 'adVideo'); });
   document.getElementById('ad-proof').addEventListener('change', function(){ uploadFile(this, document.getElementById('ad-proof-status'), 'adProof'); });
   document.getElementById('checkout-proof').addEventListener('change', function(){ uploadFile(this, document.getElementById('checkout-proof-status'), 'checkoutProof'); });
-  document.getElementById('sub-proof').addEventListener('change', function(){ uploadFile(this, document.getElementById('sub-proof-status'), 'subProof'); });
 
   async function loadState(){
     try{
       var state = await api('/api/state');
-      books = state.books; orders = state.orders; subscription = state.subscription;
-      renderCategoryChips(); renderBooks(); renderSubscription(); setupAdRotation();
+      books = state.books; orders = state.orders;
+      renderCategoryChips(); renderBooks(); setupAdRotation();
     }catch(e){ toast('Could not load the shop: ' + e, 'error'); }
   }
   function findBook(id){ for(var i=0;i<books.length;i++){ if(books[i].id === id) return books[i]; } return null; }
@@ -557,15 +609,31 @@
   }
   document.getElementById('catChips').addEventListener('click', function(e){
     var chip = e.target.closest('.chip');
-    if(chip){ currentCategory = chip.dataset.cat; renderBooks(); renderCategoryChips(); }
+    if(chip){ currentCategory = chip.dataset.cat; resetPaging(); renderBooks(); renderCategoryChips(); }
   });
-  document.getElementById('searchBox').addEventListener('input', function(e){ currentSearch = e.target.value.toLowerCase(); renderBooks(); });
-  document.getElementById('sortBox').addEventListener('change', function(e){ currentSort = e.target.value; renderBooks(); });
-  document.getElementById('minPrice').addEventListener('input', renderBooks);
-  document.getElementById('maxPrice').addEventListener('input', renderBooks);
+  document.getElementById('searchBox').addEventListener('input', function(e){ currentSearch = e.target.value.toLowerCase(); resetPaging(); renderBooks(); });
+  document.getElementById('sortBox').addEventListener('change', function(e){ currentSort = e.target.value; resetPaging(); renderBooks(); });
+  document.getElementById('minPrice').addEventListener('input', function(){ resetPaging(); renderBooks(); });
+  document.getElementById('maxPrice').addEventListener('input', function(){ resetPaging(); renderBooks(); });
+  document.getElementById('loadMoreBtn').addEventListener('click', function(){ visibleCount += 12; renderBooks(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA'){
+      e.preventDefault(); document.getElementById('searchBox').focus();
+    }
+  });
+
+  var visibleCount = 12;
+  function resetPaging(){ visibleCount = 12; }
+
+  function sellerDispatchedCounts(){
+    var counts = {};
+    orders.forEach(function(o){ if(o.dispatched && !o.cancelled && o.sellerPhone){ counts[o.sellerPhone] = (counts[o.sellerPhone]||0) + 1; } });
+    return counts;
+  }
 
   function visibleBooks(){
     var list = books.slice();
+    if(showWishlistOnly){ var w = getWishlist(); list = list.filter(function(b){ return w.indexOf(b.id) !== -1; }); }
     if(currentCategory !== 'All') list = list.filter(function(b){ return b.category === currentCategory; });
     if(currentSearch) list = list.filter(function(b){ return (b.title + ' ' + b.author).toLowerCase().indexOf(currentSearch) !== -1; });
     var min = parseFloat(document.getElementById('minPrice').value);
@@ -587,33 +655,76 @@
     document.getElementById('statOrders').textContent = orders.filter(function(o){ return !o.cancelled; }).length;
   }
 
+  function renderRecentlyViewed(){
+    var el = document.getElementById('recentlyViewed');
+    if(!el) return;
+    var found = getRecentlyViewed().map(findBook).filter(Boolean);
+    if(found.length === 0){ el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.querySelector('.grid').innerHTML = found.map(function(b){
+      return '<div class="card" data-open="' + b.id + '"><div class="cover" style="background:' + b.grad + '">' + coverHtml(b) + '<span>' + (b.cover?'':esc(b.title)) + '</span></div>' +
+        '<div class="meta"><div class="author">' + esc(b.author) + '</div><div class="title">' + esc(b.title) + '</div><div class="price">' + money(b.price) + '</div></div></div>';
+    }).join('');
+  }
+
   function renderBooks(){
     renderStats();
-    var list = visibleBooks();
+    var dispatchCounts = sellerDispatchedCounts();
+    var wishlist = getWishlist();
+    var full = visibleBooks();
+    var list = full.slice(0, visibleCount);
     var grid = document.getElementById('bookGrid');
-    if(list.length === 0){ grid.innerHTML = '<p class="field-hint">No books match your search.</p>'; }
-    else {
+    if(full.length === 0){
+      grid.innerHTML = '<p class="field-hint">' + (showWishlistOnly ? 'No saved books yet. Tap the heart on any book to save it here.' : 'No books match your search.') + '</p>';
+    } else {
       grid.innerHTML = list.map(function(b){
         var avg = avgStars(b.reviews);
         var badges = (b.outOfStock ? '<span class="badge oos">OUT OF STOCK</span>' : (b.lowStock ? '<span class="badge low">LOW STOCK</span>' : (b.isNew ? '<span class="badge new">NEW</span>' : '')));
+        var verified = (dispatchCounts[b.phone] || 0) >= 5;
+        var saved = wishlist.indexOf(b.id) !== -1;
         return '<div class="card" data-open="' + b.id + '">' +
           '<div class="cover" style="background:' + b.grad + '">' + coverHtml(b) +
             '<div class="badge-row"><span>' + badges + '</span><span>' + (b.isBestseller ? '<span class="badge best">BESTSELLER</span>' : '') + '</span></div>' +
+            '<button class="heart-btn ' + (saved?'saved':'') + '" data-wish="' + b.id + '" aria-label="Save to wishlist">&#9825;</button>' +
             '<span>' + (b.cover ? '' : esc(b.title)) + '</span></div>' +
           '<div class="meta">' +
-            '<div class="author">' + esc(b.author) + '</div>' +
+            '<div class="author">' + esc(b.author) + (verified ? ' <span class="verified">Verified</span>' : '') + '</div>' +
             '<div class="title">' + esc(b.title) + '</div>' +
             '<div class="stars">' + (b.reviews.length ? stars(avg) + ' <span class="count">(' + b.reviews.length + ')</span>' : '<span class="count">No reviews yet</span>') + '</div>' +
             '<div class="row"><span class="price">' + money(b.price) + '</span>' +
-            '<button class="add" ' + (b.outOfStock ? 'disabled' : '') + ' data-buy="' + b.id + '">' + (b.outOfStock ? 'Sold out' : 'Buy') + '</button></div>' +
+            (b.outOfStock ? '<button class="add" data-notify="' + b.id + '">Notify me</button>' : '<button class="add" data-buy="' + b.id + '">Buy</button>') + '</div>' +
           '</div></div>';
       }).join('');
     }
-    document.getElementById('bookCount').textContent = list.length + ' of ' + books.length + ' titles';
+    document.getElementById('bookCount').textContent = Math.min(visibleCount, full.length) + ' of ' + full.length + ' shown';
+    document.getElementById('loadMoreWrap').style.display = full.length > visibleCount ? 'block' : 'none';
     document.getElementById('cartCount').textContent = orders.length;
+    document.getElementById('wishlistCount').textContent = wishlist.length;
+    renderRecentlyViewed();
     var adSelect = document.getElementById('ad-book');
     adSelect.innerHTML = books.map(function(b){ return '<option value="' + b.id + '">' + esc(b.title) + '</option>'; }).join('');
     renderManageList();
+  }
+
+  function renderSalesChart(ordersForChart){
+    var days = [];
+    for(var i = 6; i >= 0; i--){ var d = new Date(Date.now() - i*86400000); days.push(d.toISOString().slice(0,10)); }
+    var counts = days.map(function(day){
+      return ordersForChart.filter(function(o){ return !o.cancelled && o.createdAt && new Date(o.createdAt).toISOString().slice(0,10) === day; }).length;
+    });
+    var max = Math.max.apply(null, counts.concat([1]));
+    var barW = 28, gap = 10, h = 70;
+    var bars = counts.map(function(c, i){
+      var bh = Math.round((c / max) * (h - 16));
+      var x = i * (barW + gap);
+      return '<rect x="' + x + '" y="' + (h - bh) + '" width="' + barW + '" height="' + Math.max(bh,2) + '" rx="3" fill="var(--primary)"></rect>' +
+        '<text x="' + (x + barW/2) + '" y="' + (h + 14) + '" font-size="9" fill="var(--muted)" text-anchor="middle">' + days[i].slice(5) + '</text>' +
+        '<text x="' + (x + barW/2) + '" y="' + (h - bh - 4) + '" font-size="10" fill="var(--text)" text-anchor="middle">' + c + '</text>';
+    }).join('');
+    var w = days.length * (barW + gap);
+    document.getElementById('salesChart').innerHTML =
+      '<p class="field-hint" style="margin-bottom:6px;">Orders, last 7 days</p>' +
+      '<svg viewBox="0 0 ' + w + ' ' + (h + 24) + '" width="100%" height="110" preserveAspectRatio="xMinYMid meet">' + bars + '</svg>';
   }
 
   function renderManageList(){
@@ -626,10 +737,22 @@
     var top = 'None yet';
     var topN = 0;
     Object.keys(titleCounts).forEach(function(t){ if(titleCounts[t] > topN){ topN = titleCounts[t]; top = t; } });
+    var allReviews = [];
+    myBooks.forEach(function(b){ allReviews = allReviews.concat(b.reviews); });
+    var avgRating = avgStars(allReviews);
     document.getElementById('salesDash').innerHTML =
       '<div class="box"><b>' + money(revenue) + '</b><span>Revenue</span></div>' +
       '<div class="box"><b>' + count + '</b><span>Orders</span></div>' +
-      '<div class="box"><b style="font-size:12px;">' + esc(top) + '</b><span>Top seller</span></div>';
+      '<div class="box"><b style="font-size:12px;">' + esc(top) + '</b><span>Top seller</span></div>' +
+      '<div class="box"><b>' + (allReviews.length ? avgRating.toFixed(1) : '-') + '</b><span>Avg rating</span></div>';
+    renderSalesChart(myOrders);
+
+    var lowStockBooks = myBooks.filter(function(b){ return b.lowStock; });
+    document.getElementById('needsAttention').innerHTML = lowStockBooks.length ? (
+      '<div class="terms-box" style="border-color:var(--accent);margin-bottom:14px;"><b>Needs attention:</b> ' +
+      lowStockBooks.map(function(b){ return esc(b.title) + ' (' + b.quantity + ' left' + (b.notifyCount ? ', ' + b.notifyCount + ' waiting for restock' : '') + ')'; }).join(', ') +
+      '</div>'
+    ) : '';
 
     var el = document.getElementById('manageList');
     var html = '<h4 style="font-size:13px;color:var(--muted);margin-bottom:6px;">' + (filterPhone ? 'Your listings' : 'All listings') + '</h4>';
@@ -638,8 +761,9 @@
       if(b.ad){ adBadge = ' <span class="status-pill ' + (b.ad.confirmed ? 'confirmed">Ad live' : 'pending">Ad pending payment') + '</span>'; }
       var adBtn = '';
       if(b.ad && !b.ad.confirmed){ adBtn = '<button class="btn-small gold" data-confirmad="' + b.id + '">Confirm ad payment (admin)</button>'; }
+      var notifyNote = (b.outOfStock && b.notifyCount) ? ' <span class="field-hint">(' + b.notifyCount + ' waiting)</span>' : '';
       return '<div class="order-card"><div class="row"><span>' + esc(b.title) + adBadge + '</span><span class="price">' + money(b.price) + '</span></div>' +
-        '<div class="field-hint">Stock: ' + b.quantity + '</div>' +
+        '<div class="field-hint">Stock: ' + b.quantity + notifyNote + '</div>' +
         '<div class="order-actions"><button class="btn-small ' + (b.outOfStock?'':'warn') + '" data-stock="' + b.id + '">' + (b.outOfStock ? 'Mark back in stock' : 'Mark out of stock') + '</button>' + adBtn + '</div></div>';
     }).join('');
 
@@ -647,12 +771,14 @@
     if(myOrders.length === 0){ html += '<p class="field-hint">No orders yet.</p>'; }
     else {
       html += myOrders.slice().reverse().map(function(o){
-        var flags = (o.cancelled ? ' <span class="tag-ext" style="background:#3a1414;color:var(--danger);">Cancelled</span>' : '') + (o.refunded ? ' <span class="tag-ext" style="background:#3a2a10;color:var(--gold);">Refunded</span>' : '');
+        var statusLabel = o.cancelled ? 'Cancelled' : (o.refunded ? 'Refunded' : (o.dispatched ? 'Dispatched' : 'Pending'));
+        var statusClass = o.cancelled || o.refunded ? 'warn' : (o.dispatched ? '' : 'gold');
         return '<div class="order-card">' +
-          '<div class="row"><span>' + esc(o.tracking) + (o.external ? '<span class="tag-ext">' + esc(o.platform) + '</span>' : '') + flags + '</span><span class="price">' + money(o.price) + '</span></div>' +
+          '<div class="row"><span>' + esc(o.tracking) + (o.external ? '<span class="tag-ext">' + esc(o.platform) + '</span>' : '') + ' <span class="status-pill ' + (statusClass==='warn'?'pending':'confirmed') + '">' + statusLabel + '</span></span><span class="price">' + money(o.price) + '</span></div>' +
           '<div class="field-hint">' + esc(o.title) + (o.buyer ? ' - buyer: ' + esc(o.buyer) : '') + (o.qty ? ' - qty: ' + o.qty : '') + '</div>' +
           '<div class="order-actions"><button class="btn-small" data-waybill="' + esc(o.tracking) + '">Print waybill</button>' +
           '<button class="btn-small" data-wa="' + esc(o.tracking) + '">Send via WhatsApp</button>' +
+          '<button class="btn-small" data-copy="' + esc(o.tracking) + '">Copy tracking #</button>' +
           (o.refunded ? '' : '<button class="btn-small gold" data-refund="' + esc(o.tracking) + '">Mark refunded</button>') +
           '</div></div>';
       }).join('');
@@ -661,12 +787,21 @@
   }
   document.getElementById('seller-filter').addEventListener('input', renderManageList);
 
-  document.getElementById('bookGrid').addEventListener('click', function(e){
-    var openCard = e.target.closest('[data-open]');
+  function bookGridClick(e){
     var buyBtn = e.target.closest('button[data-buy]');
+    var wishBtn = e.target.closest('button[data-wish]');
+    var notifyBtn = e.target.closest('button[data-notify]');
+    var openCard = e.target.closest('[data-open]');
     if(buyBtn){ openCheckout(parseInt(buyBtn.dataset.buy)); return; }
+    if(wishBtn){ toggleWishlist(parseInt(wishBtn.dataset.wish)); return; }
+    if(notifyBtn){
+      api('/api/books/' + notifyBtn.dataset.notify + '/notify', 'POST').then(function(){ toast('We will flag this to the seller when it is back in stock.', 'success'); }).catch(function(){});
+      return;
+    }
     if(openCard){ openDetail(parseInt(openCard.dataset.open)); }
-  });
+  }
+  document.getElementById('bookGrid').addEventListener('click', bookGridClick);
+  document.getElementById('recentlyViewed').addEventListener('click', bookGridClick);
   document.getElementById('manageList').addEventListener('click', function(e){
     var t = e.target, b;
     if(b = t.closest('button[data-stock]')) toggleStock(parseInt(b.dataset.stock));
@@ -674,6 +809,9 @@
     else if(b = t.closest('button[data-waybill]')) printWaybill(b.dataset.waybill);
     else if(b = t.closest('button[data-wa]')) sendWhatsapp(b.dataset.wa);
     else if(b = t.closest('button[data-refund]')) refundOrder(b.dataset.refund);
+    else if(b = t.closest('button[data-copy]')){
+      navigator.clipboard.writeText(b.dataset.copy).then(function(){ toast('Tracking number copied.', 'success'); }).catch(function(){ toast('Could not copy.', 'error'); });
+    }
   });
   document.body.addEventListener('click', function(e){
     var nav = e.target.closest('[data-nav]');
@@ -689,10 +827,12 @@
   async function confirmAd(id){ try{ await api('/api/books/' + id + '/ad/confirm', 'POST', null, true); await loadState(); toast('Ad confirmed and live.', 'success'); }catch(e){ toast('' + e, 'error'); } }
   async function refundOrder(tracking){ try{ await api('/api/orders/' + encodeURIComponent(tracking) + '/refund', 'POST'); await loadState(); toast('Order marked as refunded.', 'success'); }catch(e){ toast('' + e, 'error'); } }
 
+  var viewTitles = { shop:'Shop', sell:'Sell on Codex', track:'Track an order' };
   function switchView(name){
     document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
     document.getElementById('view-' + name).classList.add('active');
     document.querySelectorAll('nav.tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.view === name); });
+    document.title = (viewTitles[name] || 'Codex') + ' — Codex';
     window.scrollTo({top:0, behavior:'smooth'});
   }
   document.querySelectorAll('nav.tabs button').forEach(function(b){ b.addEventListener('click', function(){ switchView(b.dataset.view); }); });
@@ -745,13 +885,31 @@
 
   function openDetail(id){
     var b = findBook(id);
+    addRecentlyViewed(id);
+    document.title = b.title + ' — Codex';
     document.getElementById('detailTitle').textContent = b.title;
+    document.getElementById('detailBreadcrumb').innerHTML = 'Shop <span style="opacity:0.5;">/</span> ' + esc(b.category) + ' <span style="opacity:0.5;">/</span> ' + esc(b.title);
+    var coverEl = document.getElementById('detailCover');
+    coverEl.style.background = b.grad;
+    coverEl.innerHTML = b.cover ? '<img src="' + esc(b.cover) + '" alt="' + esc(b.title) + ' cover" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">' : '';
+    coverEl.onclick = function(){ if(b.cover){ document.getElementById('lightboxImg').src = b.cover; document.getElementById('lightbox').classList.add('show'); } };
     document.getElementById('detailAuthor').textContent = 'by ' + b.author + ' - ' + b.category;
     document.getElementById('detailDesc').textContent = b.description || 'No description provided.';
     document.getElementById('detailPrice').textContent = money(b.price);
     document.getElementById('detailBuyBtn').disabled = b.outOfStock;
     document.getElementById('detailBuyBtn').textContent = b.outOfStock ? 'Sold out' : 'Buy this book';
     document.getElementById('detailBuyBtn').onclick = function(){ document.getElementById('detailOverlay').classList.remove('show'); openCheckout(id); };
+    document.getElementById('stickyPrice').textContent = money(b.price);
+    document.getElementById('stickyBuyBtn').disabled = b.outOfStock;
+    document.getElementById('stickyBuyBtn').textContent = b.outOfStock ? 'Sold out' : 'Buy now';
+    document.getElementById('stickyBuyBtn').onclick = function(){ document.getElementById('detailOverlay').classList.remove('show'); openCheckout(id); };
+    document.getElementById('reportListingBtn').onclick = function(){
+      document.getElementById('detailOverlay').classList.remove('show');
+      switchView('track');
+      document.getElementById('c-num').value = '';
+      document.getElementById('c-msg').value = 'Reporting an issue with the listing "' + b.title + '": ';
+      document.getElementById('c-msg').focus();
+    };
     document.getElementById('shareBtn').onclick = async function(){
       var url = location.href.split('#')[0] + '#book-' + id;
       if(navigator.share){ try{ await navigator.share({ title: b.title, text: 'Check out ' + b.title + ' on Codex', url: url }); }catch(e){} }
@@ -766,9 +924,21 @@
       if(c) openDetail(parseInt(c.dataset.open));
     };
     var rl = document.getElementById('reviewList');
-    rl.innerHTML = b.reviews.length ? b.reviews.map(function(r){
-      return '<div class="review"><div class="stars">' + stars(r.stars) + '</div><p><b>' + esc(r.name) + '</b> - ' + esc(r.comment) + '</p></div>';
+    var voted = getHelpfulVotes();
+    rl.innerHTML = b.reviews.length ? b.reviews.map(function(r, idx){
+      var key = id + '-' + idx;
+      var already = voted.indexOf(key) !== -1;
+      return '<div class="review"><div class="stars">' + stars(r.stars) + '</div><p><b>' + esc(r.name) + '</b> - ' + esc(r.comment) + '</p>' +
+        '<button class="btn-small" data-helpful="' + key + '" ' + (already ? 'disabled' : '') + ' style="margin-top:6px;">Helpful' + (already ? ' - thanks' : '') + '</button></div>';
     }).join('') : '<p class="field-hint">No reviews yet - be the first.</p>';
+    rl.onclick = function(e){
+      var btn = e.target.closest('button[data-helpful]');
+      if(!btn) return;
+      var v = getHelpfulVotes();
+      v.push(btn.dataset.helpful);
+      localStorage.setItem('codex_helpful', JSON.stringify(v));
+      btn.disabled = true; btn.textContent = 'Helpful - thanks';
+    };
     document.getElementById('submitReviewBtn').onclick = async function(){
       var name = document.getElementById('rv-name').value.trim();
       var stars_ = document.getElementById('rv-stars').value;
@@ -783,7 +953,39 @@
     };
     document.getElementById('detailOverlay').classList.add('show');
   }
-  document.getElementById('closeDetailBtn').addEventListener('click', function(){ document.getElementById('detailOverlay').classList.remove('show'); });
+  document.getElementById('closeDetailBtn').addEventListener('click', function(){ document.getElementById('detailOverlay').classList.remove('show'); document.title = 'Codex — Books from the future'; });
+  document.getElementById('lightbox').addEventListener('click', function(){ this.classList.remove('show'); });
+
+  var legalContent = {
+    terms: 'Codex is a listings platform. Each seller sets their own price, inventory, and payout account, and is responsible for fulfilling orders they accept. Buyers pay sellers directly. Codex is not a party to that payment and does not guarantee delivery, refunds, or product quality - those are between buyer and seller, with Codex providing tracking, scratch codes, and a complaint channel to help resolve issues.',
+    privacy: 'Codex stores what is needed to run orders: book listings, order and tracking records, reviews, and uploaded photos or proof-of-payment screenshots. Wishlist, recently viewed, dark mode, and review-helpful votes are kept only in your own browser and are never sent to other visitors. Seller payout details are shown publicly on their own listings so buyers can pay them - do not list an account you do not want buyers to see.'
+  };
+  document.body.addEventListener('click', function(e){
+    var legal = e.target.closest('[data-legal]');
+    if(legal){
+      document.getElementById('legalTitle').textContent = legal.dataset.legal === 'terms' ? 'Terms of use' : 'Privacy policy';
+      document.getElementById('legalBody').textContent = legalContent[legal.dataset.legal];
+      document.getElementById('legalOverlay').classList.add('show');
+    }
+  });
+  document.getElementById('closeLegalBtn').addEventListener('click', function(){ document.getElementById('legalOverlay').classList.remove('show'); });
+
+  // ---- draft autosave for the Sell form ----
+  var draftFields = ['s-title','s-author','s-desc','s-category','s-price','s-qty','s-acc-name','s-acc-num','s-acc-type','s-phone'];
+  (function restoreDraft(){
+    try{
+      var draft = JSON.parse(localStorage.getItem('codex_sell_draft') || '{}');
+      draftFields.forEach(function(id){ if(draft[id]) document.getElementById(id).value = draft[id]; });
+    }catch(e){}
+  })();
+  function saveDraft(){
+    var draft = {};
+    draftFields.forEach(function(id){ draft[id] = document.getElementById(id).value; });
+    localStorage.setItem('codex_sell_draft', JSON.stringify(draft));
+  }
+  draftFields.forEach(function(id){ document.getElementById(id).addEventListener('input', saveDraft); document.getElementById(id).addEventListener('change', saveDraft); });
+
+  function markInvalid(id, bad){ document.getElementById(id).style.borderColor = bad ? 'var(--danger)' : ''; }
 
   document.getElementById('publishBtn').addEventListener('click', async function(){
     var title = document.getElementById('s-title').value.trim();
@@ -796,14 +998,18 @@
     var accNum = document.getElementById('s-acc-num').value.trim();
     var accType = document.getElementById('s-acc-type').value;
     var phone = document.getElementById('s-phone').value.trim();
-    if(!title || !author || !price || !accName || !accNum || !accType || !phone){ toast('Please fill in every field marked with a star before publishing.', 'error'); return; }
+    var required = { 's-title':title, 's-author':author, 's-price':price, 's-acc-name':accName, 's-acc-num':accNum, 's-acc-type':accType, 's-phone':phone };
+    var ok = true;
+    Object.keys(required).forEach(function(id){ var bad = !required[id]; markInvalid(id, bad); if(bad) ok = false; });
+    if(!ok){ toast('Please fill in every field marked with a star before publishing.', 'error'); return; }
     try{
       await api('/api/books', 'POST', { title:title, author:author, description:description, category:category, price:price, quantity:quantity, cover: uploadedUrls.cover, accName:accName, accNum:accNum, accType:accType, phone:phone });
       await loadState();
       toast('Listing published. It is live on the Shop tab for everyone now.', 'success');
-      ['s-title','s-author','s-desc','s-price','s-qty','s-acc-name','s-acc-num','s-phone'].forEach(function(id){ document.getElementById(id).value = ''; });
+      ['s-title','s-author','s-desc','s-price','s-qty','s-acc-name','s-acc-num','s-phone'].forEach(function(id){ document.getElementById(id).value = ''; markInvalid(id, false); });
       document.getElementById('s-acc-type').value = ''; document.getElementById('s-cover').value = ''; document.getElementById('s-cover-status').textContent = '';
       uploadedUrls.cover = null;
+      localStorage.removeItem('codex_sell_draft');
     }catch(err){ toast('Could not publish: ' + err, 'error'); }
   });
 
@@ -837,6 +1043,11 @@
     }catch(err){ toast('Could not log order: ' + err, 'error'); }
   });
 
+  document.getElementById('t-num').addEventListener('input', function(){
+    var pos = this.selectionStart;
+    this.value = this.value.toUpperCase();
+    this.setSelectionRange(pos, pos);
+  });
   document.getElementById('trackBtn').addEventListener('click', async function(){
     var num = document.getElementById('t-num').value.trim().toUpperCase();
     var timeline = document.getElementById('timeline');
@@ -883,40 +1094,11 @@
     catch(e){ toast('' + e, 'error'); }
   });
 
-  document.getElementById('paySubBtn').addEventListener('click', async function(){
-    if(!uploadedUrls.subProof){ toast('Please attach proof of payment first.', 'error'); return; }
-    try{
-      subscription = await api('/api/subscription/submit', 'POST', { proofUrl: uploadedUrls.subProof });
-      renderSubscription();
-      toast('Submitted. Awaiting confirmation.', 'success');
-      document.getElementById('sub-proof').value = ''; document.getElementById('sub-proof-status').textContent = '';
-      uploadedUrls.subProof = null;
-    }catch(e){ toast('' + e, 'error'); }
-  });
-  document.getElementById('confirmSubBtn').addEventListener('click', async function(){
-    try{ subscription = await api('/api/subscription/confirm', 'POST', null, true); renderSubscription(); toast('Subscription payment confirmed.', 'success'); }
-    catch(e){ toast('' + e, 'error'); }
-  });
-
   document.getElementById('newsBtn').addEventListener('click', async function(){
     var email = document.getElementById('newsEmail').value.trim();
     try{ await api('/api/newsletter', 'POST', { email: email }); toast('Subscribed. Thanks!', 'success'); document.getElementById('newsEmail').value=''; }
     catch(e){ toast('' + e, 'error'); }
   });
-
-  function renderSubscription(){
-    var statusEl = document.getElementById('subStatus');
-    if(subscription.lastPaid){
-      var next = new Date(subscription.lastPaid); next.setDate(next.getDate() + 30);
-      statusEl.textContent = 'Active until ' + next.toDateString();
-    } else { statusEl.textContent = 'No payment recorded yet'; }
-    document.getElementById('pendingSub').style.display = subscription.pending ? 'block' : 'none';
-    document.getElementById('submitSubSection').style.display = subscription.pending ? 'none' : 'block';
-    var histEl = document.getElementById('subHistory');
-    histEl.innerHTML = (subscription.history && subscription.history.length) ? subscription.history.map(function(h){
-      return '<div class="history-item"><span>' + esc(h.reference) + '</span><span>' + esc(h.date) + '</span></div>';
-    }).join('') : '<p class="field-hint">No payments recorded yet.</p>';
-  }
 
   async function printWaybill(tracking){
     try{

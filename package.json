@@ -1,6 +1,6 @@
 {
   "name": "codex-backend",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
   "dependencies": { "express": "^4.19.2", "multer": "^1.4.5-lts.1" }
