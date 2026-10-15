@@ -245,15 +245,32 @@
   </div>
   <nav class="tabs">
     <button data-view="shop" class="active">Shop</button>
-    <button data-view="sell">Sell</button>
+    <button data-view="sell" id="sellTabBtn" style="display:none;">Sell</button>
     <button data-view="track">Track</button>
   </nav>
   <div style="display:flex;align-items:center;gap:8px;">
     <button class="cart-btn" id="wishlistBtn" title="Saved books">Saved <span class="n" id="wishlistCount">0</span></button>
     <button class="cart-btn" id="themeToggle" title="Toggle dark mode">&#9680;</button>
     <div class="cart-btn">Orders <span class="n" id="cartCount">0</span></div>
+    <button class="cart-btn" id="logoutBtn" title="Log out"><span id="userEmailTag"></span> Log out</button>
   </div>
 </header>
+
+<div class="overlay show" id="authGate" style="z-index:200;">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-head"><h3 id="authTitle">Log in to Codex</h3></div>
+    <div id="authTabs" style="display:flex;gap:8px;margin-bottom:16px;">
+      <button class="btn-small" id="authTabLogin" style="flex:1;">Log in</button>
+      <button class="btn-small" id="authTabSignup" style="flex:1;">Sign up</button>
+    </div>
+    <label>Email</label><input type="text" id="auth-email" placeholder="you@email.com">
+    <label>Password</label><input type="password" id="auth-password" placeholder="At least 6 characters">
+    <button class="btn-primary" style="width:100%;margin-top:18px;" id="authSubmitBtn">Log in</button>
+    <p class="field-hint" id="authError" style="color:var(--danger);margin-top:10px;"></p>
+    <div class="divider"></div>
+    <p class="field-hint" style="text-align:center;"><a href="#" id="companyLoginLink">Are you the company? Log in here</a></p>
+  </div>
+</div>
 
 <div class="view active" id="view-shop">
   <div class="adbar"><div class="adbar-inner"><span class="tag">AD</span><span class="txt" id="adText">No ads running right now.</span><a class="watch" id="adWatch" href="#" target="_blank" style="display:none;">Watch &rarr;</a></div></div>
@@ -345,13 +362,9 @@
       <label>Ad video *</label><input type="file" id="s-ad-video" accept="video/*"><div class="upload-status" id="s-ad-video-status"></div>
       <label>Rate per hour (Naira, max 7,000) *</label><input type="number" id="s-ad-rate" placeholder="3500" max="7000">
       <div class="divider"></div>
-      <p class="field-hint" style="margin-bottom:8px;">Pay Codex using the account below, then upload your proof of payment.</p>
-      <div class="account-box">
-        <div class="row"><span>Account name</span><span>Dauda Joseph</span></div>
-        <div class="row"><span>Account number</span><span>8085743879</span></div>
-        <div class="row"><span>Account type</span><span>Opay</span></div>
-      </div>
-      <label>Proof of payment *</label><input type="file" id="ad-proof" accept="image/*"><div class="upload-status" id="ad-proof-status"></div>
+      <p class="field-hint" style="margin-bottom:8px;">Pay for this ad through Selar, then upload your receipt as proof of payment.</p>
+      <a class="btn-ghost" id="selarPayLink" href="https://selar.co/your-store" target="_blank" rel="noopener" style="display:block;text-align:center;width:100%;">Pay for ad via Selar</a>
+      <label style="margin-top:14px;">Proof of payment (Selar receipt) *</label><input type="file" id="ad-proof" accept="image/*"><div class="upload-status" id="ad-proof-status"></div>
       <button class="btn-gold" style="width:100%;margin-top:20px;" id="submitAdBtn">Submit ad for confirmation</button>
     </div>
 
@@ -558,6 +571,8 @@
   }
 
   var books = [], orders = [];
+  var currentUser = null; // {email, role}
+  var authMode = 'login'; // 'login' | 'signup' | 'company'
   var activeBookId = null, activeQty = 1, activeCoupon = null;
   var currentCategory = 'All', currentSort = 'default', currentSearch = '';
   var uploadedUrls = { cover:null, adVideo:null, adProof:null, checkoutProof:null };
@@ -571,6 +586,66 @@
     if(!res.ok){ if(res.status === 401 && adminAction) sessionStorage.removeItem(ADMIN_KEY_STORAGE); throw (data.error || 'Request failed'); }
     return data;
   }
+
+  // ---------- auth gate ----------
+  function setAuthMode(mode){
+    authMode = mode;
+    document.getElementById('authError').textContent = '';
+    document.getElementById('auth-email').value = '';
+    document.getElementById('auth-password').value = '';
+    if(mode === 'login'){
+      document.getElementById('authTitle').textContent = 'Log in to Codex';
+      document.getElementById('authSubmitBtn').textContent = 'Log in';
+      document.getElementById('companyLoginLink').textContent = 'Are you the company? Log in here';
+      document.getElementById('authTabs').style.display = 'flex';
+    } else if(mode === 'signup'){
+      document.getElementById('authTitle').textContent = 'Create your Codex account';
+      document.getElementById('authSubmitBtn').textContent = 'Sign up';
+      document.getElementById('companyLoginLink').textContent = 'Are you the company? Log in here';
+      document.getElementById('authTabs').style.display = 'flex';
+    } else {
+      document.getElementById('authTitle').textContent = 'Company log in';
+      document.getElementById('authSubmitBtn').textContent = 'Log in as company';
+      document.getElementById('companyLoginLink').textContent = 'Not the company? Log in or sign up as a reader';
+      document.getElementById('authTabs').style.display = 'none';
+    }
+  }
+  document.getElementById('authTabLogin').addEventListener('click', function(){ setAuthMode('login'); });
+  document.getElementById('authTabSignup').addEventListener('click', function(){ setAuthMode('signup'); });
+  document.getElementById('companyLoginLink').addEventListener('click', function(e){
+    e.preventDefault();
+    setAuthMode(authMode === 'company' ? 'login' : 'company');
+  });
+  document.getElementById('authSubmitBtn').addEventListener('click', async function(){
+    var email = document.getElementById('auth-email').value.trim();
+    var password = document.getElementById('auth-password').value;
+    var errEl = document.getElementById('authError');
+    errEl.textContent = '';
+    var route = authMode === 'signup' ? '/api/auth/signup' : (authMode === 'company' ? '/api/auth/company-login' : '/api/auth/login');
+    try{
+      var data = await api(route, 'POST', { email: email, password: password });
+      currentUser = data;
+      enterApp();
+    }catch(e){ errEl.textContent = '' + e; }
+  });
+  function enterApp(){
+    document.getElementById('authGate').classList.remove('show');
+    document.getElementById('userEmailTag').textContent = currentUser.email;
+    document.getElementById('sellTabBtn').style.display = currentUser.role === 'company' ? '' : 'none';
+    loadState();
+  }
+  document.getElementById('logoutBtn').addEventListener('click', async function(){
+    try{ await api('/api/auth/logout', 'POST'); }catch(e){}
+    currentUser = null;
+    location.reload();
+  });
+  (async function checkSession(){
+    try{
+      var data = await api('/api/auth/me');
+      currentUser = data;
+      enterApp();
+    }catch(e){ setAuthMode('login'); }
+  })();
 
   async function uploadFile(inputEl, statusEl, targetKey){
     var file = inputEl.files[0];
@@ -760,7 +835,7 @@
       var adBadge = '';
       if(b.ad){ adBadge = ' <span class="status-pill ' + (b.ad.confirmed ? 'confirmed">Ad live' : 'pending">Ad pending payment') + '</span>'; }
       var adBtn = '';
-      if(b.ad && !b.ad.confirmed){ adBtn = '<button class="btn-small gold" data-confirmad="' + b.id + '">Confirm ad payment (admin)</button>'; }
+      if(b.ad && !b.ad.confirmed){ adBtn = '<button class="btn-small gold" data-confirmad="' + b.id + '">Confirm Selar payment (Anuli only)</button>'; }
       var notifyNote = (b.outOfStock && b.notifyCount) ? ' <span class="field-hint">(' + b.notifyCount + ' waiting)</span>' : '';
       return '<div class="order-card"><div class="row"><span>' + esc(b.title) + adBadge + '</span><span class="price">' + money(b.price) + '</span></div>' +
         '<div class="field-hint">Stock: ' + b.quantity + notifyNote + '</div>' +
@@ -1137,8 +1212,6 @@
 
   window.addEventListener('scroll', function(){ document.getElementById('backTop').classList.toggle('show', window.scrollY > 400); });
   document.getElementById('backTop').addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
-
-  loadState();
 </script>
 </body>
 </html>
