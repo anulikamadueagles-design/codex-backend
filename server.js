@@ -2,6 +2,8 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 app.use(express.json());
@@ -10,9 +12,34 @@ const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads');
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ADMIN_KEY: Anuli's own secret, used only to approve a submitted ad's Selar payment.
 const ADMIN_KEY = process.env.ADMIN_KEY || 'change-this-admin-key';
+// COMPANY_EMAIL / COMPANY_PASSWORD: the one account that can list books and run ads.
+// Set these in Render's environment variables - do not leave the defaults in place.
+const COMPANY_EMAIL = (process.env.COMPANY_EMAIL || 'company@codex.local').toLowerCase();
+const COMPANY_PASSWORD = process.env.COMPANY_PASSWORD || 'change-this-company-password';
+const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const DB_FILE = path.join(__dirname, 'data.json');
 const CANCEL_WINDOW_MS = 15 * 60 * 1000;
+
+// ---------- cookies (no extra dependency - parsed by hand) ----------
+function parseCookies(req) {
+  const out = {};
+  const header = req.headers.cookie;
+  if (!header) return out;
+  header.split(';').forEach(pair => {
+    const idx = pair.indexOf('=');
+    if (idx === -1) return;
+    out[pair.slice(0, idx).trim()] = decodeURIComponent(pair.slice(idx + 1).trim());
+  });
+  return out;
+}
+function setSessionCookie(res, token) {
+  res.setHeader('Set-Cookie', `codex_session=${token}; HttpOnly; Path=/; Max-Age=${Math.floor(SESSION_MAX_AGE_MS / 1000)}; SameSite=Lax`);
+}
+function clearSessionCookie(res) {
+  res.setHeader('Set-Cookie', 'codex_session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax');
+}
 
 // ---------- security headers ----------
 app.use((req, res, next) => {
@@ -42,6 +69,30 @@ function requireAdmin(req, res, next) {
   if (req.headers['x-admin-key'] !== ADMIN_KEY) return res.status(401).json({ error: 'Invalid admin key.' });
   next();
 }
+
+// ---------- sessions (any signed-in user: buyer or the company account) ----------
+function getSessionUser(req) {
+  const cookies = parseCookies(req);
+  const token = cookies.codex_session;
+  if (!token) return null;
+  const db = loadDB();
+  const session = db.sessions[token];
+  if (!session || session.expires < Date.now()) return null;
+  return session;
+}
+function requireAuth(req, res, next) {
+  const session = getSessionUser(req);
+  if (!session) return res.status(401).json({ error: 'Please sign in first.' });
+  req.session = session;
+  next();
+}
+function requireCompany(req, res, next) {
+  const session = getSessionUser(req);
+  if (!session || session.role !== 'company') return res.status(403).json({ error: 'Only the company account can do that.' });
+  req.session = session;
+  next();
+}
+
 function asyncRoute(fn) {
   return (req, res) => Promise.resolve(fn(req, res)).catch(err => {
     console.error(err);
@@ -65,7 +116,7 @@ const upload = multer({
     else cb(new Error('Only image or video files are allowed.'));
   }
 });
-app.post('/api/upload', (req, res) => {
+app.post('/api/upload', requireAuth, (req, res) => {
   upload.single('file')(req, res, (err) => {
     if (err) return res.status(400).json({ error: err.message });
     if (!req.file) return res.status(400).json({ error: 'No file received.' });
@@ -78,17 +129,19 @@ function seedDB() {
   const oldEnough = Date.now() - 20 * 24 * 60 * 60 * 1000;
   const db = {
     books: [
-      { id: 1, title: "The Glass Horizon", author: "Nadia Ferro", description: "A shipbuilder's daughter chases a signal across a dying solar system.", price: 6500, category: "Sci-Fi & Fantasy", quantity: 12, cover: null, grad: "linear-gradient(135deg,#0f8a5f,#0b6b48)", accName: "Nadia Ferro", accNum: "0221394857", accType: "Kuda", phone: "08031234567", ad: { desc: "Fresh sci-fi drop this week, signed copies available.", rate: 3000, confirmed: true, videoUrl: null, proofUrl: null }, reviews: [{ name: "Tomiwa", stars: 5, comment: "Could not put it down.", date: "2026-08-02" }], createdAt: oldEnough },
+      { id: 1, title: "The Glass Horizon", author: "Nadia Ferro", description: "A shipbuilder's daughter chases a signal across a dying solar system.", price: 6500, category: "Sci-Fi & Fantasy", quantity: 12, cover: null, grad: "linear-gradient(135deg,#0f8a5f,#0b6b48)", accName: "Nadia Ferro", accNum: "0221394857", accType: "Kuda", phone: "08031234567", ad: { desc: "Fresh sci-fi drop this week, signed copies available.", rate: 350000, period: 'month', confirmed: true, videoUrl: null, proofUrl: null }, reviews: [{ name: "Tomiwa", stars: 5, comment: "Could not put it down.", date: "2026-08-02" }], createdAt: oldEnough },
       { id: 2, title: "Systems of Tomorrow", author: "D. Okonkwo", description: "A field guide to thinking in systems, written for builders.", price: 4200, category: "Business", quantity: 20, cover: null, grad: "linear-gradient(135deg,#b45309,#92400e)", accName: "D. Okonkwo", accNum: "3013948527", accType: "Bank transfer", phone: "08129876543", ad: null, reviews: [], createdAt: oldEnough },
       { id: 3, title: "Ashes of the Archive", author: "R. Bello", description: "A librarian uncovers a conspiracy buried in the stacks.", price: 5000, category: "Fiction", quantity: 8, cover: null, grad: "linear-gradient(135deg,#1f2937,#111827)", accName: "R. Bello", accNum: "7729384012", accType: "PalmPay", phone: "07056677889", ad: null, reviews: [{ name: "Chidera", stars: 4, comment: "Slow start, great payoff.", date: "2026-07-20" }], createdAt: oldEnough },
       { id: 4, title: "Quiet Capital", author: "T. Adeyemi", description: "How patient money actually gets made, told through ten founders.", price: 7800, category: "Business", quantity: 15, cover: null, grad: "linear-gradient(135deg,#0f766e,#115e59)", accName: "T. Adeyemi", accNum: "8843920156", accType: "Opay", phone: "09022334455", ad: null, reviews: [], createdAt: oldEnough },
-      { id: 5, title: "Signal and Silence", author: "Nadia Ferro", description: "Book two of the Horizon series.", price: 3900, category: "Sci-Fi & Fantasy", quantity: 10, cover: null, grad: "linear-gradient(135deg,#374151,#1f2937)", accName: "Nadia Ferro", accNum: "0221394857", accType: "Kuda", phone: "08031234567", ad: { desc: "Signal and Silence: book two of the Horizon series, out now.", rate: 2500, confirmed: true, videoUrl: null, proofUrl: null }, reviews: [], createdAt: oldEnough },
+      { id: 5, title: "Signal and Silence", author: "Nadia Ferro", description: "Book two of the Horizon series.", price: 3900, category: "Sci-Fi & Fantasy", quantity: 10, cover: null, grad: "linear-gradient(135deg,#374151,#1f2937)", accName: "Nadia Ferro", accNum: "0221394857", accType: "Kuda", phone: "08031234567", ad: { desc: "Signal and Silence: book two of the Horizon series, out now.", rate: 350000, period: 'month', confirmed: true, videoUrl: null, proofUrl: null }, reviews: [], createdAt: oldEnough },
       { id: 6, title: "Building with Bits", author: "K. Umeh", description: "Ship software fast without breaking things later.", price: 5600, category: "Software & Hardware", quantity: 18, cover: null, grad: "linear-gradient(135deg,#0e7490,#164e63)", accName: "K. Umeh", accNum: "5567788990", accType: "Opay", phone: "08155566778", ad: null, reviews: [{ name: "Uche", stars: 5, comment: "Practical and to the point.", date: "2026-06-11" }], createdAt: oldEnough }
     ],
     orders: [],
     complaints: [],
     coupons: [{ code: "WELCOME10", percent: 10 }, { code: "BOOKLOVER15", percent: 15 }],
     newsletter: [],
+    users: [],
+    sessions: {},
     nextBookId: 7
   };
   saveDB(db);
@@ -100,6 +153,8 @@ function loadDB() {
     const db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     if (!db.coupons) db.coupons = [{ code: "WELCOME10", percent: 10 }];
     if (!db.newsletter) db.newsletter = [];
+    if (!db.users) db.users = [];
+    if (!db.sessions) db.sessions = {};
     return db;
   } catch (e) { return seedDB(); }
 }
@@ -128,12 +183,73 @@ function publicBooks(db) {
 // ---------- routes ----------
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
-app.get('/api/state', asyncRoute((req, res) => {
+// ---------- auth: anyone must sign up or log in before using the site ----------
+app.post('/api/auth/signup', asyncRoute(async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const password = String(req.body.password || '');
+  if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email.' });
+  if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+  const db = loadDB();
+  if (email === COMPANY_EMAIL || db.users.find(u => u.email === email)) return res.status(409).json({ error: 'An account with that email already exists.' });
+  const passwordHash = await bcrypt.hash(password, 10);
+  db.users.push({ email, passwordHash, createdAt: Date.now() });
+  const token = crypto.randomBytes(24).toString('hex');
+  db.sessions[token] = { email, role: 'buyer', expires: Date.now() + SESSION_MAX_AGE_MS };
+  saveDB(db);
+  setSessionCookie(res, token);
+  res.json({ email, role: 'buyer' });
+}));
+
+app.post('/api/auth/login', asyncRoute(async (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const password = String(req.body.password || '');
+  const db = loadDB();
+  const user = db.users.find(u => u.email === email);
+  if (!user || !(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ error: 'Wrong email or password.' });
+  const token = crypto.randomBytes(24).toString('hex');
+  db.sessions[token] = { email, role: 'buyer', expires: Date.now() + SESSION_MAX_AGE_MS };
+  saveDB(db);
+  setSessionCookie(res, token);
+  res.json({ email, role: 'buyer' });
+}));
+
+app.post('/api/auth/company-login', asyncRoute((req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const password = String(req.body.password || '');
+  const emailOk = email === COMPANY_EMAIL;
+  const passOk = password.length === COMPANY_PASSWORD.length && crypto.timingSafeEqual(Buffer.from(password), Buffer.from(COMPANY_PASSWORD));
+  if (!emailOk || !passOk) return res.status(401).json({ error: 'Wrong company email or password.' });
+  const db = loadDB();
+  const token = crypto.randomBytes(24).toString('hex');
+  db.sessions[token] = { email: COMPANY_EMAIL, role: 'company', expires: Date.now() + SESSION_MAX_AGE_MS };
+  saveDB(db);
+  setSessionCookie(res, token);
+  res.json({ email: COMPANY_EMAIL, role: 'company' });
+}));
+
+app.post('/api/auth/logout', (req, res) => {
+  const cookies = parseCookies(req);
+  if (cookies.codex_session) {
+    const db = loadDB();
+    delete db.sessions[cookies.codex_session];
+    saveDB(db);
+  }
+  clearSessionCookie(res);
+  res.json({ ok: true });
+});
+
+app.get('/api/auth/me', (req, res) => {
+  const session = getSessionUser(req);
+  if (!session) return res.status(401).json({ error: 'Not signed in.' });
+  res.json({ email: session.email, role: session.role });
+});
+
+app.get('/api/state', requireAuth, asyncRoute((req, res) => {
   const db = loadDB();
   res.json({ books: publicBooks(db), orders: db.orders });
 }));
 
-app.post('/api/books', asyncRoute((req, res) => {
+app.post('/api/books', requireCompany, asyncRoute((req, res) => {
   const db = loadDB();
   const b = req.body;
   if (!b.title || !b.author || !Number(b.price) || Number(b.price) <= 0) return res.status(400).json({ error: 'Title, author, and a price above 0 are required.' });
@@ -156,7 +272,7 @@ app.post('/api/books', asyncRoute((req, res) => {
   res.json(book);
 }));
 
-app.post('/api/books/:id/stock', asyncRoute((req, res) => {
+app.post('/api/books/:id/stock', requireCompany, asyncRoute((req, res) => {
   const db = loadDB();
   const book = db.books.find(x => x.id === Number(req.params.id));
   if (!book) return res.status(404).json({ error: 'Listing not found.' });
@@ -165,15 +281,15 @@ app.post('/api/books/:id/stock', asyncRoute((req, res) => {
   res.json(book);
 }));
 
-app.post('/api/books/:id/ad', asyncRoute((req, res) => {
+const AD_RATE_NAIRA = 350000; // flat monthly ad fee, paid via Selar
+const AD_PERIOD = 'month';
+
+app.post('/api/books/:id/ad', requireCompany, asyncRoute((req, res) => {
   const db = loadDB();
   const book = db.books.find(x => x.id === Number(req.params.id));
   if (!book) return res.status(404).json({ error: 'Listing not found.' });
-  if (!req.body.desc || !req.body.rate) return res.status(400).json({ error: 'Ad description and rate are required.' });
-  let rate = Number(req.body.rate) || 0;
-  if (rate > 7000) rate = 7000;
-  if (rate <= 0) return res.status(400).json({ error: 'Rate must be greater than 0.' });
-  book.ad = { desc: String(req.body.desc).slice(0, 200), rate, confirmed: false, videoUrl: req.body.videoUrl || null, proofUrl: req.body.proofUrl || null };
+  if (!req.body.desc) return res.status(400).json({ error: 'Ad description is required.' });
+  book.ad = { desc: String(req.body.desc).slice(0, 200), rate: AD_RATE_NAIRA, period: AD_PERIOD, confirmed: false, videoUrl: req.body.videoUrl || null, proofUrl: req.body.proofUrl || null };
   saveDB(db);
   res.json(book);
 }));
@@ -187,14 +303,14 @@ app.post('/api/books/:id/ad/confirm', requireAdmin, asyncRoute((req, res) => {
   res.json(book);
 }));
 
-app.get('/api/coupons/:code', asyncRoute((req, res) => {
+app.get('/api/coupons/:code', requireAuth, asyncRoute((req, res) => {
   const db = loadDB();
   const coupon = db.coupons.find(c => c.code.toUpperCase() === req.params.code.toUpperCase());
   if (!coupon) return res.status(404).json({ error: 'Coupon not found.' });
   res.json(coupon);
 }));
 
-app.post('/api/books/:id/reviews', asyncRoute((req, res) => {
+app.post('/api/books/:id/reviews', requireAuth, asyncRoute((req, res) => {
   const db = loadDB();
   const book = db.books.find(x => x.id === Number(req.params.id));
   if (!book) return res.status(404).json({ error: 'Listing not found.' });
@@ -205,7 +321,7 @@ app.post('/api/books/:id/reviews', asyncRoute((req, res) => {
   res.json(book);
 }));
 
-app.post('/api/orders', asyncRoute((req, res) => {
+app.post('/api/orders', requireAuth, asyncRoute((req, res) => {
   const db = loadDB();
   const book = db.books.find(x => x.id === Number(req.body.bookId));
   if (!book) return res.status(404).json({ error: 'Book not found.' });
@@ -229,7 +345,7 @@ app.post('/api/orders', asyncRoute((req, res) => {
   res.json(order);
 }));
 
-app.post('/api/orders/external', asyncRoute((req, res) => {
+app.post('/api/orders/external', requireCompany, asyncRoute((req, res) => {
   const db = loadDB();
   if (!req.body.title || !req.body.buyer) return res.status(400).json({ error: 'Item title and buyer name are required.' });
   const order = { tracking: genTracking(), code: genScratch(), title: String(req.body.title).slice(0, 120), price: Number(req.body.price) || 0, buyer: String(req.body.buyer).slice(0, 80), external: true, platform: req.body.platform || 'Other', dispatched: false, cancelled: false, refunded: false, createdAt: Date.now() };
@@ -238,14 +354,14 @@ app.post('/api/orders/external', asyncRoute((req, res) => {
   res.json(order);
 }));
 
-app.get('/api/orders/:tracking', asyncRoute((req, res) => {
+app.get('/api/orders/:tracking', requireAuth, asyncRoute((req, res) => {
   const db = loadDB();
   const order = db.orders.find(o => o.tracking === req.params.tracking.toUpperCase());
   if (!order) return res.status(404).json({ error: 'No order found with that tracking number.' });
   res.json(order);
 }));
 
-app.get('/api/orders', asyncRoute((req, res) => {
+app.get('/api/orders', requireAuth, asyncRoute((req, res) => {
   const db = loadDB();
   const contact = String(req.query.contact || '').trim().toLowerCase();
   const phoneOnly = contact.replace(/\D/g, '');
@@ -257,7 +373,7 @@ app.get('/api/orders', asyncRoute((req, res) => {
   res.json(matches);
 }));
 
-app.post('/api/orders/:tracking/dispatch', asyncRoute((req, res) => {
+app.post('/api/orders/:tracking/dispatch', requireCompany, asyncRoute((req, res) => {
   const db = loadDB();
   const order = db.orders.find(o => o.tracking === req.params.tracking);
   if (!order) return res.status(404).json({ error: 'Order not found.' });
@@ -266,7 +382,7 @@ app.post('/api/orders/:tracking/dispatch', asyncRoute((req, res) => {
   res.json(order);
 }));
 
-app.post('/api/orders/:tracking/cancel', asyncRoute((req, res) => {
+app.post('/api/orders/:tracking/cancel', requireAuth, asyncRoute((req, res) => {
   const db = loadDB();
   const order = db.orders.find(o => o.tracking === req.params.tracking);
   if (!order) return res.status(404).json({ error: 'Order not found.' });
@@ -282,7 +398,7 @@ app.post('/api/orders/:tracking/cancel', asyncRoute((req, res) => {
   res.json(order);
 }));
 
-app.post('/api/orders/:tracking/refund', asyncRoute((req, res) => {
+app.post('/api/orders/:tracking/refund', requireCompany, asyncRoute((req, res) => {
   const db = loadDB();
   const order = db.orders.find(o => o.tracking === req.params.tracking);
   if (!order) return res.status(404).json({ error: 'Order not found.' });
@@ -291,7 +407,7 @@ app.post('/api/orders/:tracking/refund', asyncRoute((req, res) => {
   res.json(order);
 }));
 
-app.post('/api/complaints', asyncRoute((req, res) => {
+app.post('/api/complaints', requireAuth, asyncRoute((req, res) => {
   const db = loadDB();
   if (!req.body.tracking || !req.body.message) return res.status(400).json({ error: 'Order number and message are required.' });
   db.complaints.push({ tracking: req.body.tracking, message: String(req.body.message).slice(0, 500) });
@@ -299,7 +415,7 @@ app.post('/api/complaints', asyncRoute((req, res) => {
   res.json({ ok: true });
 }));
 
-app.post('/api/newsletter', asyncRoute((req, res) => {
+app.post('/api/newsletter', requireAuth, asyncRoute((req, res) => {
   const db = loadDB();
   const email = String(req.body.email || '').trim();
   if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email.' });
@@ -308,7 +424,7 @@ app.post('/api/newsletter', asyncRoute((req, res) => {
   res.json({ ok: true });
 }));
 
-app.post('/api/books/:id/notify', asyncRoute((req, res) => {
+app.post('/api/books/:id/notify', requireAuth, asyncRoute((req, res) => {
   const db = loadDB();
   const book = db.books.find(x => x.id === Number(req.params.id));
   if (!book) return res.status(404).json({ error: 'Listing not found.' });
@@ -317,7 +433,7 @@ app.post('/api/books/:id/notify', asyncRoute((req, res) => {
   res.json({ notifyCount: book.notifyCount });
 }));
 
-app.get('/api/orders/export.csv', asyncRoute((req, res) => {
+app.get('/api/orders/export.csv', requireCompany, asyncRoute((req, res) => {
   const db = loadDB();
   const rows = [['tracking', 'title', 'price', 'qty', 'buyer_contact', 'cancelled', 'refunded', 'dispatched', 'created']];
   db.orders.forEach(o => {
