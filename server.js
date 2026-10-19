@@ -183,6 +183,15 @@ function publicBooks(db) {
 // ---------- routes ----------
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
+// Tells the frontend whether the real APK has been placed in public/downloads/codex.apk yet.
+// Keeps the Download App button from ever pointing at a dead link.
+const APK_PATH = path.join(__dirname, 'public', 'downloads', 'codex.apk');
+app.get('/api/app/info', (req, res) => {
+  const exists = fs.existsSync(APK_PATH);
+  const size = exists ? fs.statSync(APK_PATH).size : 0;
+  res.json({ available: exists, sizeMB: exists ? (size / (1024 * 1024)).toFixed(1) : null });
+});
+
 // ---------- auth: anyone must sign up or log in before using the site ----------
 app.post('/api/auth/signup', asyncRoute(async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase();

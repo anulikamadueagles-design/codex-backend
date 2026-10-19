@@ -268,6 +268,7 @@
   <div style="display:flex;align-items:center;gap:8px;">
     <button class="cart-btn" id="wishlistBtn" title="Saved books">Saved <span class="n" id="wishlistCount">0</span></button>
     <button class="cart-btn" id="themeToggle" title="Toggle dark mode">&#9680;</button>
+    <button class="cart-btn" id="downloadAppBtn" title="Download the Codex app">Download App</button>
     <div class="cart-btn">Orders <span class="n" id="cartCount">0</span></div>
     <button class="cart-btn" id="logoutBtn" title="Log out"><span id="userEmailTag"></span> Log out</button>
   </div>
@@ -530,6 +531,15 @@
   <div class="modal">
     <div class="modal-head"><h3 id="legalTitle"></h3><button class="close-x" id="closeLegalBtn">Close</button></div>
     <div id="legalBody" style="font-size:13px;color:var(--muted);line-height:1.7;"></div>
+  </div>
+</div>
+
+<div class="overlay" id="downloadAppOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3>Get the Codex app</h3><button class="close-x" id="closeDownloadBtn">Close</button></div>
+    <div id="downloadAppBody">
+      <p class="field-hint">Checking...</p>
+    </div>
   </div>
 </div>
 
@@ -1075,6 +1085,27 @@
     }
   });
   document.getElementById('closeLegalBtn').addEventListener('click', function(){ document.getElementById('legalOverlay').classList.remove('show'); });
+
+  document.getElementById('downloadAppBtn').addEventListener('click', async function(){
+    var body = document.getElementById('downloadAppBody');
+    body.innerHTML = '<p class="field-hint">Checking...</p>';
+    document.getElementById('downloadAppOverlay').classList.add('show');
+    try{
+      var res = await fetch('/api/app/info');
+      var info = await res.json();
+      if(info.available){
+        body.innerHTML =
+          '<p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:16px;">Install Codex directly on your Android phone - no Play Store needed.</p>' +
+          '<a class="btn-primary" style="display:block;text-align:center;width:100%;" href="/downloads/codex.apk" download>Download for Android (' + info.sizeMB + ' MB)</a>' +
+          '<div class="terms-box" style="margin-top:16px;">Since this isn\'t from the Play Store, your phone will ask permission the first time. When it does: tap <b>Settings</b> on the warning, turn on <b>Allow from this source</b>, go back, and tap install again.</div>';
+      } else {
+        body.innerHTML = '<p style="font-size:14px;color:var(--muted);line-height:1.6;">The Android app isn\'t published yet - check back soon.</p>';
+      }
+    }catch(e){
+      body.innerHTML = '<p style="font-size:14px;color:var(--muted);">Could not check right now - try again shortly.</p>';
+    }
+  });
+  document.getElementById('closeDownloadBtn').addEventListener('click', function(){ document.getElementById('downloadAppOverlay').classList.remove('show'); });
 
   // ---- draft autosave for the Sell form ----
   var draftFields = ['s-title','s-author','s-desc','s-category','s-price','s-qty','s-acc-name','s-acc-num','s-acc-type','s-phone'];
