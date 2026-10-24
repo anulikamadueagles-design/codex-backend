@@ -46,16 +46,37 @@
   nav.tabs button.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,0.08);}
   .cart-btn{display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:7px;border:1px solid var(--line);font-size:13px;font-weight:500;}
   .cart-btn span.n{color:#fff;background:var(--primary);border-radius:5px;padding:1px 7px;font-weight:600;font-size:11px;}
-  @media (max-width:640px){ .brand .txt{display:none;} nav.tabs button{padding:8px 9px;font-size:11.5px;} }
+  .header-actions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;}
+  .menu-toggle{display:none;background:var(--surface2);border:1px solid var(--line);border-radius:7px;width:38px;height:38px;font-size:16px;flex-shrink:0;}
+  @media (max-width:900px){
+    header{flex-wrap:wrap;row-gap:10px;}
+    .brand{order:1;}
+    .menu-toggle{display:block;order:2;}
+    nav.tabs{order:3;width:100%;}
+    nav.tabs button{flex:1;}
+    .header-actions{order:4;width:100%;display:none;flex-direction:column;align-items:stretch;gap:6px;}
+    .header-actions.open{display:flex;}
+    .header-actions .cart-btn, .header-actions div.cart-btn{width:100%;justify-content:center;}
+  }
+  @media (max-width:640px){ .brand .txt{display:none;} }
 
   .view{display:none;}
   .view.active{display:block;}
 
-  .adbar{max-width:1280px;margin:16px auto 0;padding:0 clamp(20px,5vw,64px);}
-  .adbar-inner{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:12px 18px;display:flex;align-items:center;gap:12px;font-size:13px;}
-  .adbar-inner .tag{background:var(--accent);color:#fff;font-weight:700;font-size:10px;padding:2px 8px;border-radius:4px;flex-shrink:0;letter-spacing:0.4px;}
-  .adbar-inner .txt b{color:var(--primary);}
-  .adbar-inner a.watch{margin-left:auto;color:var(--primary);font-size:12px;white-space:nowrap;font-weight:600;}
+  .sponsored{max-width:1280px;margin:16px auto 0;padding:0 clamp(20px,5vw,64px);}
+  .sponsored-head{display:flex;align-items:center;margin-bottom:10px;}
+  .sponsored-label{font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--accent);background:#fef3e2;padding:4px 10px;border-radius:4px;}
+  .sponsored-track{display:flex;gap:14px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity;}
+  .sponsored-track::-webkit-scrollbar{height:6px;}
+  .sponsored-card{flex:0 0 auto;width:300px;scroll-snap-align:start;background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:12px;overflow:hidden;cursor:pointer;display:flex;gap:12px;padding:12px;transition:box-shadow .15s ease, transform .15s ease;}
+  .sponsored-card:hover{box-shadow:0 8px 24px rgba(0,0,0,0.08);transform:translateY(-2px);}
+  .sponsored-cover{flex:0 0 72px;width:72px;height:72px;border-radius:8px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700;text-align:center;padding:4px;}
+  .sponsored-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .sponsored-body{flex:1;min-width:0;}
+  .sponsored-title{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sponsored-author{font-size:11px;color:var(--muted);margin-bottom:4px;}
+  .sponsored-desc{font-size:12px;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:6px;}
+  .sponsored-price{font-size:13px;font-weight:700;color:var(--accent);}
 
   .hero{padding:clamp(40px,7vw,72px) clamp(20px,5vw,64px) 30px;max-width:1280px;margin:0 auto;text-align:center;}
   .kicker{color:var(--primary);font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:14px;text-transform:uppercase;}
@@ -265,13 +286,14 @@
     <button data-view="sell" id="sellTabBtn" style="display:none;">Sell</button>
     <button data-view="track">Track</button>
   </nav>
-  <div style="display:flex;align-items:center;gap:8px;">
+  <div class="header-actions" id="headerActions">
     <button class="cart-btn" id="wishlistBtn" title="Saved books">Saved <span class="n" id="wishlistCount">0</span></button>
     <button class="cart-btn" id="themeToggle" title="Toggle dark mode">&#9680;</button>
     <button class="cart-btn" id="downloadAppBtn" title="Download the Codex app">Download App</button>
     <div class="cart-btn">Orders <span class="n" id="cartCount">0</span></div>
     <button class="cart-btn" id="logoutBtn" title="Log out"><span id="userEmailTag"></span> Log out</button>
   </div>
+  <button class="menu-toggle" id="menuToggle" aria-label="Menu">&#9776;</button>
 </header>
 
 <div id="authGate">
@@ -300,7 +322,10 @@
 </div>
 
 <div class="view active" id="view-shop">
-  <div class="adbar"><div class="adbar-inner"><span class="tag">AD</span><span class="txt" id="adText">No ads running right now.</span><a class="watch" id="adWatch" href="#" target="_blank" style="display:none;">Watch &rarr;</a></div></div>
+  <section class="sponsored" id="sponsoredSection" style="display:none;">
+    <div class="sponsored-head"><span class="sponsored-label">Sponsored</span></div>
+    <div class="sponsored-track" id="sponsoredTrack"></div>
+  </section>
 
   <section class="hero">
     <div class="kicker">A MARKETPLACE FOR BOOKS</div>
@@ -308,7 +333,7 @@
     <p>Browse titles from independent sellers, pay each seller directly, and get a tracking number and scratch code the moment your order is confirmed. No listing fees, no reader subscriptions.</p>
     <div class="hero-cta">
       <a class="btn-primary" href="#shelf">Browse the shelf</a>
-      <button class="btn-ghost" data-nav="sell">List your books</button>
+      <button class="btn-ghost" data-nav="sell" id="heroSellBtn">List your books</button>
     </div>
     <div class="stats-row">
       <div class="stat"><b id="statBooks">-</b><span>Titles listed</span></div>
@@ -468,7 +493,7 @@
 
 <footer>
   <div class="fcol"><div class="fbrand">Codex</div><div style="color:var(--muted);">A marketplace where readers pay sellers directly, and sellers keep what they sell.</div></div>
-  <div class="fcol"><h4>Marketplace</h4><div data-nav="shop">Shop</div><div data-nav="sell">Sell on Codex</div><div data-nav="track">Track an order</div></div>
+  <div class="fcol"><h4>Marketplace</h4><div data-nav="shop">Shop</div><div data-nav="sell" id="footerSellLink">Sell on Codex</div><div data-nav="track">Track an order</div></div>
   <div class="fcol"><h4>Platform</h4><div data-legal="terms">Terms of use</div><div data-legal="privacy">Privacy policy</div></div>
   <div class="fcol"><h4>Stay updated</h4><input type="email" id="newsEmail" placeholder="you@email.com"><button class="btn-small" id="newsBtn" style="width:100%;">Subscribe</button></div>
 </footer>
@@ -669,7 +694,10 @@
   function enterApp(){
     document.body.classList.remove('pre-auth');
     document.getElementById('userEmailTag').textContent = currentUser.email;
-    document.getElementById('sellTabBtn').style.display = currentUser.role === 'company' ? '' : 'none';
+    var isCompany = currentUser.role === 'company';
+    document.getElementById('sellTabBtn').style.display = isCompany ? '' : 'none';
+    document.getElementById('heroSellBtn').style.display = isCompany ? '' : 'none';
+    document.getElementById('footerSellLink').style.display = isCompany ? '' : 'none';
     loadState();
   }
   document.getElementById('logoutBtn').addEventListener('click', async function(){
@@ -918,6 +946,7 @@
   }
   document.getElementById('bookGrid').addEventListener('click', bookGridClick);
   document.getElementById('recentlyViewed').addEventListener('click', bookGridClick);
+  document.getElementById('sponsoredTrack').addEventListener('click', bookGridClick);
   document.getElementById('manageList').addEventListener('click', function(e){
     var t = e.target, b;
     if(b = t.closest('button[data-stock]')) toggleStock(parseInt(b.dataset.stock));
@@ -945,6 +974,7 @@
 
   var viewTitles = { shop:'Shop', sell:'Sell on Codex', track:'Track an order' };
   function switchView(name){
+    if(name === 'sell' && (!currentUser || currentUser.role !== 'company')) name = 'shop';
     document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
     document.getElementById('view-' + name).classList.add('active');
     document.querySelectorAll('nav.tabs button').forEach(function(b){ b.classList.toggle('active', b.dataset.view === name); });
@@ -1084,6 +1114,9 @@
       document.getElementById('legalOverlay').classList.add('show');
     }
   });
+  document.getElementById('menuToggle').addEventListener('click', function(){ document.getElementById('headerActions').classList.toggle('open'); });
+  document.querySelectorAll('nav.tabs button').forEach(function(b){ b.addEventListener('click', function(){ document.getElementById('headerActions').classList.remove('open'); }); });
+
   document.getElementById('closeLegalBtn').addEventListener('click', function(){ document.getElementById('legalOverlay').classList.remove('show'); });
 
   document.getElementById('downloadAppBtn').addEventListener('click', async function(){
@@ -1254,21 +1287,22 @@
     }catch(e){ toast('Could not find that order.', 'error'); }
   }
 
-  var adTimer = null;
   function setupAdRotation(){
-    var ads = books.filter(function(b){ return b.ad && b.ad.confirmed; }).map(function(b){ return b.ad; });
-    var adTextEl = document.getElementById('adText');
-    var adWatchEl = document.getElementById('adWatch');
-    if(adTimer) clearInterval(adTimer);
-    if(ads.length === 0){ adTextEl.textContent = 'No ads running right now.'; adWatchEl.style.display = 'none'; return; }
-    var idx = 0;
-    function show(){
-      adTextEl.innerHTML = ads[idx].desc + ' <b>(' + money(ads[idx].rate) + '/month)</b>';
-      if(ads[idx].videoUrl){ adWatchEl.href = ads[idx].videoUrl; adWatchEl.style.display = 'inline'; } else { adWatchEl.style.display = 'none'; }
-      idx = (idx + 1) % ads.length;
-    }
-    show();
-    adTimer = setInterval(show, 6000);
+    var adBooks = books.filter(function(b){ return b.ad && b.ad.confirmed; });
+    var section = document.getElementById('sponsoredSection');
+    var track = document.getElementById('sponsoredTrack');
+    if(adBooks.length === 0){ section.style.display = 'none'; track.innerHTML = ''; return; }
+    section.style.display = 'block';
+    track.innerHTML = adBooks.map(function(b){
+      return '<div class="sponsored-card" data-open="' + b.id + '">' +
+        '<div class="sponsored-cover" style="background:' + b.grad + '">' + coverHtml(b) + (b.cover ? '' : '<span>' + esc(b.title) + '</span>') + '</div>' +
+        '<div class="sponsored-body">' +
+          '<div class="sponsored-title">' + esc(b.title) + '</div>' +
+          '<div class="sponsored-author">by ' + esc(b.author) + '</div>' +
+          '<div class="sponsored-desc">' + esc(b.ad.desc) + '</div>' +
+          '<div class="sponsored-price">' + money(b.price) + '</div>' +
+        '</div></div>';
+    }).join('');
   }
 
   window.addEventListener('scroll', function(){ document.getElementById('backTop').classList.toggle('show', window.scrollY > 400); });
