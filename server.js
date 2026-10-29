@@ -19,7 +19,6 @@ const ADMIN_KEY = process.env.ADMIN_KEY || 'change-this-admin-key';
 const COMPANY_EMAIL = (process.env.COMPANY_EMAIL || 'company@codex.local').toLowerCase();
 const COMPANY_PASSWORD = process.env.COMPANY_PASSWORD || 'change-this-company-password';
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
-const DB_FILE = path.join(__dirname, 'data.json');
 const CANCEL_WINDOW_MS = 15 * 60 * 1000;
 
 // ---------- cookies (no extra dependency - parsed by hand) ----------
@@ -71,26 +70,28 @@ function requireAdmin(req, res, next) {
 }
 
 // ---------- sessions (any signed-in user: buyer or the company account) ----------
-function getSessionUser(req) {
+async function getSessionUser(req) {
   const cookies = parseCookies(req);
   const token = cookies.codex_session;
   if (!token) return null;
-  const db = loadDB();
+  const db = await loadDB();
   const session = db.sessions[token];
   if (!session || session.expires < Date.now()) return null;
   return session;
 }
 function requireAuth(req, res, next) {
-  const session = getSessionUser(req);
-  if (!session) return res.status(401).json({ error: 'Please sign in first.' });
-  req.session = session;
-  next();
+  getSessionUser(req).then(session => {
+    if (!session) return res.status(401).json({ error: 'Please sign in first.' });
+    req.session = session;
+    next();
+  }).catch(err => { console.error(err); res.status(500).json({ error: 'Something went wrong on the server.' }); });
 }
 function requireCompany(req, res, next) {
-  const session = getSessionUser(req);
-  if (!session || session.role !== 'company') return res.status(403).json({ error: 'Only the company account can do that.' });
-  req.session = session;
-  next();
+  getSessionUser(req).then(session => {
+    if (!session || session.role !== 'company') return res.status(403).json({ error: 'Only the company account can do that.' });
+    req.session = session;
+    next();
+  }).catch(err => { console.error(err); res.status(500).json({ error: 'Something went wrong on the server.' }); });
 }
 
 function asyncRoute(fn) {
@@ -124,7 +125,30 @@ app.post('/api/upload', requireAuth, (req, res) => {
   });
 });
 
-// ---------- database ----------
+// ---------- database (Postgres, one JSONB row holding the whole store) ----------
+// This keeps every route below identical to before - they still get a plain
+// JS object back from loadDB() and hand it to saveDB() the same way. What
+// changed is where that object actually lives: a real Postgres database
+// instead of a file on Render's local disk, so it survives redeploys.
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+});
+let dbReadyPromise = null;
+async function ensureTable() {
+  if (!dbReadyPromise) {
+    dbReadyPromise = pool.query(`
+      CREATE TABLE IF NOT EXISTS store (
+        id INT PRIMARY KEY,
+        data JSONB NOT NULL,
+        updated_at TIMESTAMPTZ DEFAULT now()
+      )
+    `);
+  }
+  return dbReadyPromise;
+}
+
 function seedDB() {
   const oldEnough = Date.now() - 20 * 24 * 60 * 60 * 1000;
   const db = {
@@ -144,21 +168,32 @@ function seedDB() {
     sessions: {},
     nextBookId: 7
   };
-  saveDB(db);
   return db;
 }
-function loadDB() {
-  if (!fs.existsSync(DB_FILE)) return seedDB();
-  try {
-    const db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-    if (!db.coupons) db.coupons = [{ code: "WELCOME10", percent: 10 }];
-    if (!db.newsletter) db.newsletter = [];
-    if (!db.users) db.users = [];
-    if (!db.sessions) db.sessions = {};
-    return db;
-  } catch (e) { return seedDB(); }
+
+async function loadDB() {
+  await ensureTable();
+  const result = await pool.query('SELECT data FROM store WHERE id = 1');
+  if (result.rows.length === 0) {
+    const fresh = seedDB();
+    await pool.query('INSERT INTO store (id, data) VALUES (1, $1)', [JSON.stringify(fresh)]);
+    return fresh;
+  }
+  const db = result.rows[0].data;
+  if (!db.coupons) db.coupons = [{ code: "WELCOME10", percent: 10 }];
+  if (!db.newsletter) db.newsletter = [];
+  if (!db.users) db.users = [];
+  if (!db.sessions) db.sessions = {};
+  return db;
 }
-function saveDB(db) { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2)); }
+
+async function saveDB(db) {
+  await ensureTable();
+  await pool.query(
+    'INSERT INTO store (id, data, updated_at) VALUES (1, $1, now()) ON CONFLICT (id) DO UPDATE SET data = $1, updated_at = now()',
+    [JSON.stringify(db)]
+  );
+}
 
 function genTracking() { return 'CDX-' + Math.floor(10000 + Math.random() * 89999); }
 function genScratch() { return 'SC-' + Math.floor(1000 + Math.random() * 8999) + '-' + Math.floor(1000 + Math.random() * 8999); }
@@ -198,13 +233,13 @@ app.post('/api/auth/signup', asyncRoute(async (req, res) => {
   const password = String(req.body.password || '');
   if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email.' });
   if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters.' });
-  const db = loadDB();
+  const db = await loadDB();
   if (email === COMPANY_EMAIL || db.users.find(u => u.email === email)) return res.status(409).json({ error: 'An account with that email already exists.' });
   const passwordHash = await bcrypt.hash(password, 10);
   db.users.push({ email, passwordHash, createdAt: Date.now() });
   const token = crypto.randomBytes(24).toString('hex');
   db.sessions[token] = { email, role: 'buyer', expires: Date.now() + SESSION_MAX_AGE_MS };
-  saveDB(db);
+  await saveDB(db);
   setSessionCookie(res, token);
   res.json({ email, role: 'buyer' });
 }));
@@ -212,54 +247,54 @@ app.post('/api/auth/signup', asyncRoute(async (req, res) => {
 app.post('/api/auth/login', asyncRoute(async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase();
   const password = String(req.body.password || '');
-  const db = loadDB();
+  const db = await loadDB();
   const user = db.users.find(u => u.email === email);
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) return res.status(401).json({ error: 'Wrong email or password.' });
   const token = crypto.randomBytes(24).toString('hex');
   db.sessions[token] = { email, role: 'buyer', expires: Date.now() + SESSION_MAX_AGE_MS };
-  saveDB(db);
+  await saveDB(db);
   setSessionCookie(res, token);
   res.json({ email, role: 'buyer' });
 }));
 
-app.post('/api/auth/company-login', asyncRoute((req, res) => {
+app.post('/api/auth/company-login', asyncRoute(async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase();
   const password = String(req.body.password || '');
   const emailOk = email === COMPANY_EMAIL;
   const passOk = password.length === COMPANY_PASSWORD.length && crypto.timingSafeEqual(Buffer.from(password), Buffer.from(COMPANY_PASSWORD));
   if (!emailOk || !passOk) return res.status(401).json({ error: 'Wrong company email or password.' });
-  const db = loadDB();
+  const db = await loadDB();
   const token = crypto.randomBytes(24).toString('hex');
   db.sessions[token] = { email: COMPANY_EMAIL, role: 'company', expires: Date.now() + SESSION_MAX_AGE_MS };
-  saveDB(db);
+  await saveDB(db);
   setSessionCookie(res, token);
   res.json({ email: COMPANY_EMAIL, role: 'company' });
 }));
 
-app.post('/api/auth/logout', (req, res) => {
+app.post('/api/auth/logout', asyncRoute(async (req, res) => {
   const cookies = parseCookies(req);
   if (cookies.codex_session) {
-    const db = loadDB();
+    const db = await loadDB();
     delete db.sessions[cookies.codex_session];
-    saveDB(db);
+    await saveDB(db);
   }
   clearSessionCookie(res);
   res.json({ ok: true });
-});
+}));
 
-app.get('/api/auth/me', (req, res) => {
-  const session = getSessionUser(req);
+app.get('/api/auth/me', asyncRoute(async (req, res) => {
+  const session = await getSessionUser(req);
   if (!session) return res.status(401).json({ error: 'Not signed in.' });
   res.json({ email: session.email, role: session.role });
-});
+}));
 
-app.get('/api/state', requireAuth, asyncRoute((req, res) => {
-  const db = loadDB();
+app.get('/api/state', requireAuth, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   res.json({ books: publicBooks(db), orders: db.orders });
 }));
 
-app.post('/api/books', requireCompany, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/books', requireCompany, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const b = req.body;
   if (!b.title || !b.author || !Number(b.price) || Number(b.price) <= 0) return res.status(400).json({ error: 'Title, author, and a price above 0 are required.' });
   if (!b.accName || !b.accNum || !b.accType || !b.phone) return res.status(400).json({ error: 'Full payout details are required.' });
@@ -277,61 +312,61 @@ app.post('/api/books', requireCompany, asyncRoute((req, res) => {
     ad: null, reviews: [], createdAt: Date.now(), notifyCount: 0
   };
   db.books.unshift(book);
-  saveDB(db);
+  await saveDB(db);
   res.json(book);
 }));
 
-app.post('/api/books/:id/stock', requireCompany, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/books/:id/stock', requireCompany, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const book = db.books.find(x => x.id === Number(req.params.id));
   if (!book) return res.status(404).json({ error: 'Listing not found.' });
   book.quantity = book.quantity > 0 ? 0 : 10;
-  saveDB(db);
+  await saveDB(db);
   res.json(book);
 }));
 
 const AD_RATE_NAIRA = 350000; // flat monthly ad fee, paid via Selar
 const AD_PERIOD = 'month';
 
-app.post('/api/books/:id/ad', requireCompany, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/books/:id/ad', requireCompany, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const book = db.books.find(x => x.id === Number(req.params.id));
   if (!book) return res.status(404).json({ error: 'Listing not found.' });
   if (!req.body.desc) return res.status(400).json({ error: 'Ad description is required.' });
   book.ad = { desc: String(req.body.desc).slice(0, 200), rate: AD_RATE_NAIRA, period: AD_PERIOD, confirmed: false, videoUrl: req.body.videoUrl || null, proofUrl: req.body.proofUrl || null };
-  saveDB(db);
+  await saveDB(db);
   res.json(book);
 }));
 
-app.post('/api/books/:id/ad/confirm', requireAdmin, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/books/:id/ad/confirm', requireAdmin, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const book = db.books.find(x => x.id === Number(req.params.id));
   if (!book || !book.ad) return res.status(404).json({ error: 'No pending ad for this listing.' });
   book.ad.confirmed = true;
-  saveDB(db);
+  await saveDB(db);
   res.json(book);
 }));
 
-app.get('/api/coupons/:code', requireAuth, asyncRoute((req, res) => {
-  const db = loadDB();
+app.get('/api/coupons/:code', requireAuth, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const coupon = db.coupons.find(c => c.code.toUpperCase() === req.params.code.toUpperCase());
   if (!coupon) return res.status(404).json({ error: 'Coupon not found.' });
   res.json(coupon);
 }));
 
-app.post('/api/books/:id/reviews', requireAuth, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/books/:id/reviews', requireAuth, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const book = db.books.find(x => x.id === Number(req.params.id));
   if (!book) return res.status(404).json({ error: 'Listing not found.' });
   const stars = parseInt(req.body.stars);
   if (!req.body.name || !req.body.comment || !(stars >= 1 && stars <= 5)) return res.status(400).json({ error: 'Name, a comment, and a 1-5 star rating are required.' });
   book.reviews.push({ name: String(req.body.name).slice(0, 60), stars, comment: String(req.body.comment).slice(0, 400), date: new Date().toISOString().slice(0, 10) });
-  saveDB(db);
+  await saveDB(db);
   res.json(book);
 }));
 
-app.post('/api/orders', requireAuth, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/orders', requireAuth, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const book = db.books.find(x => x.id === Number(req.body.bookId));
   if (!book) return res.status(404).json({ error: 'Book not found.' });
   const qty = Math.max(1, parseInt(req.body.qty) || 1);
@@ -350,28 +385,28 @@ app.post('/api/orders', requireAuth, asyncRoute((req, res) => {
     dispatched: false, cancelled: false, refunded: false, createdAt: Date.now()
   };
   db.orders.push(order);
-  saveDB(db);
+  await saveDB(db);
   res.json(order);
 }));
 
-app.post('/api/orders/external', requireCompany, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/orders/external', requireCompany, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   if (!req.body.title || !req.body.buyer) return res.status(400).json({ error: 'Item title and buyer name are required.' });
   const order = { tracking: genTracking(), code: genScratch(), title: String(req.body.title).slice(0, 120), price: Number(req.body.price) || 0, buyer: String(req.body.buyer).slice(0, 80), external: true, platform: req.body.platform || 'Other', dispatched: false, cancelled: false, refunded: false, createdAt: Date.now() };
   db.orders.push(order);
-  saveDB(db);
+  await saveDB(db);
   res.json(order);
 }));
 
-app.get('/api/orders/:tracking', requireAuth, asyncRoute((req, res) => {
-  const db = loadDB();
+app.get('/api/orders/:tracking', requireAuth, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const order = db.orders.find(o => o.tracking === req.params.tracking.toUpperCase());
   if (!order) return res.status(404).json({ error: 'No order found with that tracking number.' });
   res.json(order);
 }));
 
-app.get('/api/orders', requireAuth, asyncRoute((req, res) => {
-  const db = loadDB();
+app.get('/api/orders', requireAuth, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const contact = String(req.query.contact || '').trim().toLowerCase();
   const phoneOnly = contact.replace(/\D/g, '');
   if (!contact) return res.status(400).json({ error: 'Provide a phone number or email.' });
@@ -382,17 +417,17 @@ app.get('/api/orders', requireAuth, asyncRoute((req, res) => {
   res.json(matches);
 }));
 
-app.post('/api/orders/:tracking/dispatch', requireCompany, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/orders/:tracking/dispatch', requireCompany, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const order = db.orders.find(o => o.tracking === req.params.tracking);
   if (!order) return res.status(404).json({ error: 'Order not found.' });
   order.dispatched = true;
-  saveDB(db);
+  await saveDB(db);
   res.json(order);
 }));
 
-app.post('/api/orders/:tracking/cancel', requireAuth, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/orders/:tracking/cancel', requireAuth, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const order = db.orders.find(o => o.tracking === req.params.tracking);
   if (!order) return res.status(404).json({ error: 'Order not found.' });
   if (order.dispatched) return res.status(400).json({ error: 'This order has already been dispatched and can no longer be cancelled here.' });
@@ -403,47 +438,47 @@ app.post('/api/orders/:tracking/cancel', requireAuth, asyncRoute((req, res) => {
     const book = db.books.find(x => x.id === order.bookId);
     if (book) book.quantity += (order.qty || 1);
   }
-  saveDB(db);
+  await saveDB(db);
   res.json(order);
 }));
 
-app.post('/api/orders/:tracking/refund', requireCompany, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/orders/:tracking/refund', requireCompany, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const order = db.orders.find(o => o.tracking === req.params.tracking);
   if (!order) return res.status(404).json({ error: 'Order not found.' });
   order.refunded = true;
-  saveDB(db);
+  await saveDB(db);
   res.json(order);
 }));
 
-app.post('/api/complaints', requireAuth, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/complaints', requireAuth, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   if (!req.body.tracking || !req.body.message) return res.status(400).json({ error: 'Order number and message are required.' });
   db.complaints.push({ tracking: req.body.tracking, message: String(req.body.message).slice(0, 500) });
-  saveDB(db);
+  await saveDB(db);
   res.json({ ok: true });
 }));
 
-app.post('/api/newsletter', requireAuth, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/newsletter', requireAuth, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const email = String(req.body.email || '').trim();
   if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email.' });
   if (!db.newsletter.includes(email)) db.newsletter.push(email);
-  saveDB(db);
+  await saveDB(db);
   res.json({ ok: true });
 }));
 
-app.post('/api/books/:id/notify', requireAuth, asyncRoute((req, res) => {
-  const db = loadDB();
+app.post('/api/books/:id/notify', requireAuth, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const book = db.books.find(x => x.id === Number(req.params.id));
   if (!book) return res.status(404).json({ error: 'Listing not found.' });
   book.notifyCount = (book.notifyCount || 0) + 1;
-  saveDB(db);
+  await saveDB(db);
   res.json({ notifyCount: book.notifyCount });
 }));
 
-app.get('/api/orders/export.csv', requireCompany, asyncRoute((req, res) => {
-  const db = loadDB();
+app.get('/api/orders/export.csv', requireCompany, asyncRoute(async (req, res) => {
+  const db = await loadDB();
   const rows = [['tracking', 'title', 'price', 'qty', 'buyer_contact', 'cancelled', 'refunded', 'dispatched', 'created']];
   db.orders.forEach(o => {
     rows.push([o.tracking, o.title, o.price, o.qty || 1, o.buyerContact || o.buyer || '', !!o.cancelled, !!o.refunded, !!o.dispatched, o.createdAt ? new Date(o.createdAt).toISOString() : '']);
