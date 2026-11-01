@@ -508,8 +508,24 @@
     <label>Have a coupon code?</label>
     <div style="display:flex;gap:8px;"><input type="text" id="couponInput" placeholder="e.g. WELCOME10"><button class="btn-small" id="applyCouponBtn">Apply</button></div>
     <div class="divider"></div>
-    <label>Your phone or email (so you can look up this order later)</label>
-    <input type="text" id="buyerContact" placeholder="080... or you@email.com">
+    <h3 class="sub-head" style="margin-bottom:6px;">Delivery details</h3>
+    <p class="field-hint" style="margin-bottom:6px;">The seller sees exactly what you enter here.</p>
+    <label>Full name *</label>
+    <input type="text" id="dl-name" placeholder="Name the parcel should go to">
+    <label>Phone number *</label>
+    <input type="tel" id="dl-phone" placeholder="080...">
+    <label>Email (optional)</label>
+    <input type="email" id="dl-email" placeholder="you@email.com">
+    <label>Delivery address *</label>
+    <textarea id="dl-address" placeholder="Street, area, city, landmark" style="min-height:64px;"></textarea>
+    <label>Exact location on Google Maps *</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-small" type="button" id="dl-openMapsBtn" style="flex:1;">Select location on Google Maps</button>
+      <button class="btn-small" type="button" id="dl-useGpsBtn" style="flex:1;">Use my current location</button>
+    </div>
+    <p class="field-hint">On Google Maps, press and hold the exact spot to drop a pin, tap Share, copy the link, then paste it below.</p>
+    <input type="text" id="dl-mapLink" placeholder="Paste the Google Maps link here">
+    <div class="field-hint" id="dl-mapStatus"></div>
     <div class="divider"></div>
     <p class="field-hint" style="margin-bottom:8px;">Pay this seller directly using their details below, then confirm your payment.</p>
     <div class="account-box" id="modalAccountBox"></div>
@@ -568,6 +584,22 @@
   </div>
 </div>
 
+<div id="adVideoOverlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;padding:16px;">
+  <div style="position:relative;width:100%;max-width:520px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#f0a44a;background:rgba(255,255,255,0.08);padding:4px 10px;border-radius:4px;">Sponsored</span>
+      <button id="adSkipBtn" disabled style="background:#ffffff;color:#171a1f;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:700;opacity:0.5;">Skip in 5</button>
+    </div>
+    <video id="adVideo" playsinline muted style="width:100%;max-height:70vh;border-radius:10px;background:#000;"></video>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:#fff;gap:10px;">
+      <div style="min-width:0;">
+        <div id="adVideoTitle" style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+        <div id="adVideoDesc" style="font-size:12px;opacity:0.8;"></div>
+      </div>
+      <button id="adUnmuteBtn" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.4);border-radius:6px;padding:6px 10px;font-size:12px;flex-shrink:0;">Unmute</button>
+    </div>
+  </div>
+</div>
 <div id="printArea"></div>
 <div id="toasts"></div>
 <button id="backTop" title="Back to top">&uarr;</button>
@@ -739,7 +771,7 @@
     try{
       var state = await api('/api/state');
       books = state.books; orders = state.orders;
-      renderCategoryChips(); renderBooks(); setupAdRotation();
+      renderCategoryChips(); renderBooks(); setupAdRotation(); playVideoAds();
     }catch(e){ toast('Could not load the shop: ' + e, 'error'); }
   }
   function findBook(id){ for(var i=0;i<books.length;i++){ if(books[i].id === id) return books[i]; } return null; }
@@ -920,6 +952,7 @@
         return '<div class="order-card">' +
           '<div class="row"><span>' + esc(o.tracking) + (o.external ? '<span class="tag-ext">' + esc(o.platform) + '</span>' : '') + ' <span class="status-pill ' + (statusClass==='warn'?'pending':'confirmed') + '">' + statusLabel + '</span></span><span class="price">' + money(o.price) + '</span></div>' +
           '<div class="field-hint">' + esc(o.title) + (o.buyer ? ' - buyer: ' + esc(o.buyer) : '') + (o.qty ? ' - qty: ' + o.qty : '') + '</div>' +
+          (o.delivery ? '<div class="terms-box" style="margin-top:8px;font-size:12px;"><b>Deliver to:</b> ' + esc(o.delivery.name) + ' - ' + esc(o.delivery.phone) + (o.delivery.email ? ' - ' + esc(o.delivery.email) : '') + '<br>' + esc(o.delivery.address) + '<br><a href="' + esc(o.delivery.mapLink) + '" target="_blank" rel="noopener" style="color:var(--primary);font-weight:600;">Open exact location on Google Maps</a></div>' : '') +
           '<div class="order-actions"><button class="btn-small" data-waybill="' + esc(o.tracking) + '">Print waybill</button>' +
           '<button class="btn-small" data-wa="' + esc(o.tracking) + '">Send via WhatsApp</button>' +
           '<button class="btn-small" data-copy="' + esc(o.tracking) + '">Copy tracking #</button>' +
@@ -989,7 +1022,8 @@
     activeBookId = id; activeQty = 1; activeCoupon = null;
     uploadedUrls.checkoutProof = null;
     document.getElementById('couponInput').value = '';
-    document.getElementById('buyerContact').value = '';
+    ['dl-name','dl-phone','dl-email','dl-address','dl-mapLink'].forEach(function(id){ document.getElementById(id).value = ''; });
+    document.getElementById('dl-mapStatus').textContent = '';
     document.getElementById('checkout-proof-status').textContent = '';
     document.getElementById('modalBookTitle').textContent = b.title + ' - ' + b.author;
     updateCheckoutPrice();
@@ -1019,10 +1053,35 @@
   });
   document.getElementById('closeModalBtn').addEventListener('click', function(){ document.getElementById('checkoutOverlay').classList.remove('show'); });
 
+  function getDelivery(){
+    return {
+      name: document.getElementById('dl-name').value.trim(),
+      phone: document.getElementById('dl-phone').value.trim(),
+      email: document.getElementById('dl-email').value.trim(),
+      address: document.getElementById('dl-address').value.trim(),
+      mapLink: document.getElementById('dl-mapLink').value.trim()
+    };
+  }
+  document.getElementById('dl-openMapsBtn').addEventListener('click', function(){
+    window.open('https://www.google.com/maps', '_blank', 'noopener');
+  });
+  document.getElementById('dl-useGpsBtn').addEventListener('click', function(){
+    var status = document.getElementById('dl-mapStatus');
+    if(!navigator.geolocation){ status.textContent = 'Your phone cannot share its location. Use Select location on Google Maps instead.'; return; }
+    status.textContent = 'Getting your location... allow the permission prompt.';
+    navigator.geolocation.getCurrentPosition(function(pos){
+      var link = 'https://www.google.com/maps?q=' + pos.coords.latitude.toFixed(6) + ',' + pos.coords.longitude.toFixed(6);
+      document.getElementById('dl-mapLink').value = link;
+      status.textContent = 'Location captured. Check the address box and add your street details.';
+    }, function(){
+      status.textContent = 'Could not get your location. Allow location access, or use Select location on Google Maps.';
+    }, { enableHighAccuracy: true, timeout: 15000 });
+  });
+
   document.getElementById('confirmBtn').addEventListener('click', async function(){
     if(!document.getElementById('cod-terms').checked){ toast('Please agree to the terms first.', 'error'); return; }
     try{
-      var order = await api('/api/orders', 'POST', { bookId: activeBookId, qty: activeQty, coupon: activeCoupon ? activeCoupon.code : undefined, buyerContact: document.getElementById('buyerContact').value.trim() || null, proofUrl: uploadedUrls.checkoutProof });
+      var order = await api('/api/orders', 'POST', { bookId: activeBookId, qty: activeQty, coupon: activeCoupon ? activeCoupon.code : undefined, delivery: getDelivery(), proofUrl: uploadedUrls.checkoutProof });
       toast('PAID SUCCESSFULLY. Tracking: ' + order.tracking + ' - Scratch code: ' + order.code, 'success');
       document.getElementById('confirmBtn').disabled = true;
       await loadState();
@@ -1304,6 +1363,58 @@
         '</div></div>';
     }).join('');
   }
+
+  // ---------- video ads: play once per visit, skip after 5 seconds ----------
+  var adQueue = [];
+  function playVideoAds(){
+    if(sessionStorage.getItem('codex_ads_shown')) return;
+    adQueue = books.filter(function(b){ return b.ad && b.ad.confirmed && b.ad.videoUrl; });
+    if(adQueue.length === 0) return;
+    sessionStorage.setItem('codex_ads_shown', '1');
+    showNextVideoAd(0);
+  }
+  function showNextVideoAd(i){
+    if(i >= adQueue.length){ closeVideoAd(); return; }
+    var b = adQueue[i];
+    var overlay = document.getElementById('adVideoOverlay');
+    var video = document.getElementById('adVideo');
+    var skip = document.getElementById('adSkipBtn');
+    overlay.style.display = 'flex';
+    document.getElementById('adVideoTitle').textContent = b.title;
+    document.getElementById('adVideoDesc').textContent = b.ad.desc;
+    video.src = b.ad.videoUrl;
+    video.muted = true;
+    document.getElementById('adUnmuteBtn').textContent = 'Unmute';
+    var left = 5;
+    skip.disabled = true;
+    skip.style.opacity = '0.5';
+    skip.textContent = 'Skip in ' + left;
+    var timer = setInterval(function(){
+      left--;
+      if(left <= 0){
+        clearInterval(timer);
+        skip.disabled = false;
+        skip.style.opacity = '1';
+        skip.textContent = 'Skip ad';
+      } else {
+        skip.textContent = 'Skip in ' + left;
+      }
+    }, 1000);
+    video.onended = function(){ clearInterval(timer); showNextVideoAd(i + 1); };
+    skip.onclick = function(){ clearInterval(timer); video.pause(); showNextVideoAd(i + 1); };
+    var p = video.play();
+    if(p && p.catch){ p.catch(function(){ clearInterval(timer); skip.disabled = false; skip.style.opacity = '1'; skip.textContent = 'Skip ad'; }); }
+  }
+  function closeVideoAd(){
+    var video = document.getElementById('adVideo');
+    video.pause(); video.removeAttribute('src'); video.load();
+    document.getElementById('adVideoOverlay').style.display = 'none';
+  }
+  document.getElementById('adUnmuteBtn').addEventListener('click', function(){
+    var video = document.getElementById('adVideo');
+    video.muted = !video.muted;
+    this.textContent = video.muted ? 'Unmute' : 'Mute';
+  });
 
   window.addEventListener('scroll', function(){ document.getElementById('backTop').classList.toggle('show', window.scrollY > 400); });
   document.getElementById('backTop').addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });

@@ -111,7 +111,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 20 * 1024 * 1024 },
+  limits: { fileSize: 150 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (/^image\//.test(file.mimetype) || /^video\//.test(file.mimetype)) cb(null, true);
     else cb(new Error('Only image or video files are allowed.'));
@@ -333,6 +333,7 @@ app.post('/api/books/:id/ad', requireCompany, asyncRoute(async (req, res) => {
   const book = db.books.find(x => x.id === Number(req.params.id));
   if (!book) return res.status(404).json({ error: 'Listing not found.' });
   if (!req.body.desc) return res.status(400).json({ error: 'Ad description is required.' });
+  if (!req.body.videoUrl) return res.status(400).json({ error: 'Upload the ad video first.' });
   book.ad = { desc: String(req.body.desc).slice(0, 200), rate: AD_RATE_NAIRA, period: AD_PERIOD, confirmed: false, videoUrl: req.body.videoUrl || null, proofUrl: req.body.proofUrl || null };
   await saveDB(db);
   res.json(book);
@@ -369,6 +370,20 @@ app.post('/api/orders', requireAuth, asyncRoute(async (req, res) => {
   const db = await loadDB();
   const book = db.books.find(x => x.id === Number(req.body.bookId));
   if (!book) return res.status(404).json({ error: 'Book not found.' });
+  const d = req.body.delivery || {};
+  const dName = String(d.name || '').trim().slice(0, 80);
+  const dPhone = String(d.phone || '').replace(/\s+/g, '').slice(0, 20);
+  const dEmail = String(d.email || '').trim().slice(0, 120);
+  const dAddress = String(d.address || '').trim().slice(0, 300);
+  const dMap = String(d.mapLink || '').trim().slice(0, 500);
+  if (!dName) return res.status(400).json({ error: 'Enter your full name for delivery.' });
+  if (!/^\+?[0-9]{10,15}$/.test(dPhone)) return res.status(400).json({ error: 'Enter a valid phone number (10-15 digits).' });
+  if (dEmail && !/^\S+@\S+\.\S+$/.test(dEmail)) return res.status(400).json({ error: 'Enter a valid email or leave it empty.' });
+  if (dAddress.length < 8) return res.status(400).json({ error: 'Enter the delivery address in full.' });
+  if (!/^https:\/\/(www\.)?(google\.[a-z.]+\/maps|maps\.google\.[a-z.]+|maps\.app\.goo\.gl|goo\.gl\/maps)/i.test(dMap)) {
+    return res.status(400).json({ error: 'Select the exact spot on Google Maps and paste the link.' });
+  }
+  const delivery = { name: dName, phone: dPhone, email: dEmail || null, address: dAddress, mapLink: dMap };
   const qty = Math.max(1, parseInt(req.body.qty) || 1);
   if (book.quantity < qty) return res.status(400).json({ error: 'Not enough stock left.' });
   let unitPrice = book.price;
@@ -381,7 +396,7 @@ app.post('/api/orders', requireAuth, asyncRoute(async (req, res) => {
   const order = {
     tracking: genTracking(), code: genScratch(), bookId: book.id, title: book.title, author: book.author,
     price: unitPrice * qty, qty, coupon: couponApplied, phone: book.phone, sellerPhone: book.phone,
-    buyerContact: req.body.buyerContact || null, proofUrl: req.body.proofUrl || null,
+    buyerContact: dPhone + (dEmail ? ' / ' + dEmail : ''), delivery, proofUrl: req.body.proofUrl || null,
     dispatched: false, cancelled: false, refunded: false, createdAt: Date.now()
   };
   db.orders.push(order);
